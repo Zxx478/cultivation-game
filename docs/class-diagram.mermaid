@@ -129,8 +129,7 @@ classDiagram
     class GameClock {
         +game_year(age_days) int
         +game_month(age_days) int
-        +action_days(base, realm_index) int
-        +realm_time_factor(realm_index) float
+        +action_days(base_days, tier_days) int
         +days_to_years(days) int
     }
 

@@ -2,7 +2,7 @@
 
 一次请求 = 一段游戏时间，立即结算（任务书 §2.4 / 系统设计 §4.2）：
 1. 守卫：已坐化 / 待决事件 / 进行中的战斗都拒绝新行动；
-2. ``days = action_days(base, realm_index)``，锻血闭关 30 日、辟府 42 日；
+2. ``days = action_days(base, tier_days)``，tier 按境界查表；锻血闭关 30 日、辟府 90 日；
 3. 闭关产出 = ``ExpRate × days``（内部 float，只 floor 一次）；
 4. 修为升级受「本境等级上限」约束（Lv.9 必须突破才能进 Lv.10）；
 5. 每次行动后 35% 触发事件（散修 38.5%），事件会中断持续闭关；
@@ -292,6 +292,7 @@ def execute(kind: str, *, repeat: int = 1) -> Dict[str, Any]:
 
     registry = get_registry()
     base_days = registry.action_base_days(kind)
+    tier_base = registry.action_tier_base_days()
     total_days = 0
     total_exp = 0
     items_got: Dict[str, int] = {}
@@ -302,7 +303,13 @@ def execute(kind: str, *, repeat: int = 1) -> Dict[str, Any]:
 
     for _ in range(repeat):
         char = CharacterRepository.require(int(char["id"]))
-        days = action_days(base_days, int(char["realm_index"]))
+        tier = registry.realm_time_tier_days(int(char["realm_index"]))
+        days = action_days(base_days, tier, tier_base)
+        # 寿元截断：高境一次闭关即千年，批量 10 连可凭空烧掉万年。
+        # 超出剩余寿元即停，避免单次请求把角色推进「寿元为负」的死局。
+        if int(char["age_days"]) + days > int(char["lifespan_max_days"]):
+            messages.append("寿元将尽，余日已不足一次闭关")
+            break
         total_days += days
         fields: Dict[str, Any] = {"age_days": int(char["age_days"]) + days}
         rng = RngService(str(char["rng_seed"]), int(char["rng_counter"]))

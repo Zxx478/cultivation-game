@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from .clock import (
+    ACTION_TIER_BASE_DAYS,
     DAYS_PER_MONTH,
     DAYS_PER_YEAR,
     action_days,
@@ -24,6 +25,7 @@ from .response import fail, ok
 from .rng import RngService
 
 __all__ = [
+    "ACTION_TIER_BASE_DAYS",
     "DAYS_PER_MONTH",
     "DAYS_PER_YEAR",
     "action_days",

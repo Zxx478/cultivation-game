@@ -1,11 +1,14 @@
-"""唯一时间入口：游戏日 ↔ 年/月、行动动态耗时。
+"""唯一时间入口：游戏日 ↔ 年/月、行动耗时按境界档位缩放。
 
-口径（任务书 §8 红线 4 / 系统设计 D5）：
+口径（系统设计 D5 / ``docs/12-境界时间档位与修为曲线设计-v1.0.md``）：
 - 1 游戏年 = 360 日 = 12 月 × 30 日；
 - ``age_days`` 初值 1，``game_year(d) = (d - 1) // 360 + 1``；
-- 行动耗时 ``base_days × (1 + realm_time_factor × (realm_index - 1))``，
+- 每个大境有一档 ``time_tier_days``（锻血 30 日 → 大帝 3,600,000 日），
+  行动耗时按 ``base_days × tier_days / ACTION_TIER_BASE_DAYS`` 等比缩放，
   四舍五入到整数日，至少 1 日；
-- 锻血（realm_index=1）闭关 30 日，辟府（=2）闭关 42 日。
+- 锻血（tier=30）闭关 30 日，辟府（tier=90）闭关 90 日。
+
+本模块只做纯算术，不查内容、不认识「境界」——档位由调用方经 Registry 取到后传入。
 """
 from __future__ import annotations
 
@@ -14,7 +17,8 @@ import math
 DAYS_PER_MONTH: int = 30
 MONTHS_PER_YEAR: int = 12
 DAYS_PER_YEAR: int = DAYS_PER_MONTH * MONTHS_PER_YEAR
-REALM_TIME_FACTOR: float = 0.40
+#: 档位缩放基准：锻血档位的日数（= ``game.yaml.action_tier_base_days``）。
+ACTION_TIER_BASE_DAYS: int = 30
 AGE_DAYS_INITIAL: int = 1
 
 
@@ -37,14 +41,14 @@ def month_of_year(age_days: int) -> int:
     return ((age_days - 1) % DAYS_PER_YEAR) // DAYS_PER_MONTH + 1
 
 
-def action_days(base_days: int, realm_index: int,
-                factor: float = REALM_TIME_FACTOR) -> int:
-    """行动耗时（含境界时间膨胀）。
+def action_days(base_days: int, tier_days: int,
+                base_tier_days: int = ACTION_TIER_BASE_DAYS) -> int:
+    """行动耗时（按境界档位等比缩放）。
 
     Args:
-        base_days: 基准耗时（game.yaml.action_base_days 的值）。
-        realm_index: 当前大境序号（1–12）。
-        factor: 境界时间膨胀系数，默认 0.40。
+        base_days: 基准耗时（``game.yaml.action_base_days`` 的值）。
+        tier_days: 当前大境的时间档位日数（``realms.yaml.time_tier_days``）。
+        base_tier_days: 档位缩放基准，默认 30（锻血档位）。
 
     Returns:
         实际耗时游戏日，四舍五入且下限 1。
@@ -54,9 +58,11 @@ def action_days(base_days: int, realm_index: int,
     """
     if base_days <= 0:
         raise ValueError("base_days must be > 0")
-    if realm_index < 1:
-        raise ValueError("realm_index must be >= 1")
-    raw = base_days * (1.0 + factor * (realm_index - 1))
+    if tier_days <= 0:
+        raise ValueError("tier_days must be > 0")
+    if base_tier_days <= 0:
+        raise ValueError("base_tier_days must be > 0")
+    raw = base_days * tier_days / base_tier_days
     return max(1, int(math.floor(raw + 0.5)))
 
 

@@ -329,14 +329,35 @@ def test_defend_takes_effect_before_enemy_first_strike():
 # ---------------- P2-1 / P2-3 / P2-4 / P2-10 ----------------
 
 def test_state_closed_door_times_uses_realm_specific_days():
-    """辟府境闭关 42 日，剩余 100 日只能闭关 2 次（不是 30 日的 3 次）。"""
+    """辟府境闭关 90 日（3 个月档位），剩余 100 日只能闭关 1 次（不是 30 日的 3 次）。"""
     from app.services import state_service
 
     _make_char(level=10, realm_index=2, realm_stage=1,
                lifespan_max_days=101, age_days=1)
     data = state_service.state()
-    assert data["closed_door_times"] == 2
-    assert data["character"]["closed_door_times"] == 2
+    assert data["action_days"]["seclusion"] == 90
+    assert data["closed_door_times"] == 1
+    assert data["character"]["closed_door_times"] == 1
+
+
+def test_batch_seclusion_stops_at_lifespan(monkeypatch):
+    """批量闭关必须在剩余寿元处截断，不能把角色推过寿元上限。
+
+    高境一次闭关即千年，`repeat=10` 可凭空烧掉万年；旧档位下（大帝 162 日）
+    这个缺口无害，新档位下会直接把角色点进死局。
+    """
+    from app.services import action_service
+
+    monkeypatch.setattr(action_service.event_domain, "roll_trigger", lambda *a, **k: False)
+    # 锻血档位 30 日；只给 1 次的余量（age=1，上限 31）
+    char_id = _make_char(level=1, realm_index=1, realm_stage=1,
+                         age_days=1, lifespan_max_days=31)
+    result = action_service.execute("seclusion", repeat=10)
+    assert result["settle"]["total_days"] == 30          # 只跑了 1 次就停
+    after = CharacterRepository.require(char_id)
+    assert int(after["age_days"]) == 31
+    assert int(after["age_days"]) <= int(after["lifespan_max_days"])
+    assert any("寿元将尽" in m for m in result["settle"]["messages"])
 
 
 def test_append_items_enforces_bag_capacity():

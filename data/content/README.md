@@ -101,7 +101,7 @@ consumable 5：`huiqi_san juling_fu dundi_fu pifu_shi chuanxun_yujian`
 
 ## 4. 引擎对接要点
 
-1. **行动耗时**：`days = game.action_base_days[kind] × (1 + realm_time_factor × (realm_index − 1))`。
+1. **行动耗时**：`days = action_base_days[kind] × realms[order].time_tier_days / action_tier_base_days`（档位 1 月→10000 年，即 30→3,600,000 日；基准 30）。见 `docs/12-境界时间档位与修为曲线设计-v1.0.md`。
 2. **修为**：`ExpRate = (5 + wis×0.8) × (1+0.35×(realm_index−1)) × 功法 × 体质 × 环境 × 心境 × 状态 × exp_rate_global_bp/10000`；单级需求 `floor(100 × L^1.78 × exp_k_bp/10000)`。
 3. **层数系数**：`base_coef_bp × (1 + 0.08 × n)`，n = 1..9。
 4. **事件**：先按 `category_weights_bp` 定类别，再按 `weight` 抽；`check=null` 视为必成；成功率 `clamp(difficulty_bp + 属性 + 性格 + 运气×0.3% + 因果修正, 500, 9500)`。

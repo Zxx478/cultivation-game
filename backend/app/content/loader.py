@@ -158,6 +158,14 @@ class Content:
         """按等级取修为曲线系数 K（bp）。"""
         return int(self.realm_of_level(level)["exp_k_bp"])
 
+    def realm_time_tier_days(self, realm_index: int) -> int:
+        """按大境序号（1–12）取时间档位日数（一次闭关的日数）。"""
+        return int(self.realm_by_index[int(realm_index)]["time_tier_days"])
+
+    def realm_time_tier_label(self, realm_index: int) -> str:
+        """按大境序号取时间档位文案（如「3 年」）。"""
+        return str(self.realm_by_index[int(realm_index)]["time_tier_label"])
+
 
 # ---------------- 读取 ----------------
 

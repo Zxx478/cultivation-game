@@ -7,8 +7,10 @@
 # 字段：
 #   id                    境界枚举（realm_id），代码与 DB 唯一标识，禁止改名
 #   display_name          上线名（UI/文案必用；禁止出现原著参考名）
-#   order                 1–12，境界序号（时间膨胀与修为系数都按它算）
+#   order                 1–12，境界序号（修为系数与档位查表都按它算）
 #   level_start/level_end 全局等级区间（闭区间；emperor 只有 100 一级）
+#   time_tier_label       行动时间档位文案（UI 展示用，必须与 time_tier_days 自洽）
+#   time_tier_days        本境「一次闭关」的游戏日数（其余行动按 base/30 等比缩放）
 #   base_lifespan_years   基准寿元（年），突破成功时整体重算
 #   exp_k_bp              修为曲线系数 K × 10000（1.0 → 10000）
 #   power_coef            战力系数（HP/MP/减伤公式中的"境界战力系数"）
@@ -17,6 +19,11 @@
 #   per_level_growth      每小境（每级）属性自然成长
 #   breakthrough_items    突破本境所需辅材（引用 items.yaml 的 id）
 #   unlock_features       本境解锁的玩法权限键
+# ============================================================
+# 【数值来源】time_tier_days / exp_k_bp / base_lifespan_years 三项由
+#   tools/gen_pacing_table.py（反解 K）与 tools/sim_progression.py（校验寿元）
+#   联合生成，设计依据见 docs/12-境界时间档位与修为曲线设计-v1.0.md。
+#   **禁止手改**：改动任一数值都会破坏「无倒挂」与「可通关」两条约束。
 # ============================================================
 
 realms:
@@ -27,8 +34,10 @@ realms:
     level_end: 9
     stage_count: 9
     stage_note: 九次锻血（一至九炼）
+    time_tier_label: 1 个月
+    time_tier_days: 30
     base_lifespan_years: 100
-    exp_k_bp: 10000
+    exp_k_bp: 6381
     power_coef: 1.0
     breakthrough_base_bp: 8500
     enabled: true
@@ -43,8 +52,10 @@ realms:
     level_end: 18
     stage_count: 9
     stage_note: 开九府（一至九府）
+    time_tier_label: 3 个月
+    time_tier_days: 90
     base_lifespan_years: 150
-    exp_k_bp: 18000
+    exp_k_bp: 12046
     power_coef: 3.0
     breakthrough_base_bp: 8000
     enabled: true
@@ -59,8 +70,10 @@ realms:
     level_end: 27
     stage_count: 9
     stage_note: 九转化灵
+    time_tier_label: 6 个月
+    time_tier_days: 180
     base_lifespan_years: 200
-    exp_k_bp: 30000
+    exp_k_bp: 20271
     power_coef: 9.0
     breakthrough_base_bp: 7500
     enabled: false
@@ -75,8 +88,10 @@ realms:
     level_end: 36
     stage_count: 9
     stage_note: 九道刻纹
+    time_tier_label: 1 年
+    time_tier_days: 360
     base_lifespan_years: 300
-    exp_k_bp: 45000
+    exp_k_bp: 34625
     power_coef: 27.0
     breakthrough_base_bp: 7000
     enabled: false
@@ -91,8 +106,10 @@ realms:
     level_end: 45
     stage_count: 9
     stage_note: 九座大阵
-    base_lifespan_years: 400
-    exp_k_bp: 65000
+    time_tier_label: 3 年
+    time_tier_days: 1080
+    base_lifespan_years: 600
+    exp_k_bp: 94323
     power_coef: 81.0
     breakthrough_base_bp: 6500
     enabled: false
@@ -107,8 +124,10 @@ realms:
     level_end: 54
     stage_count: 9
     stage_note: 一至九重天
-    base_lifespan_years: 600
-    exp_k_bp: 90000
+    time_tier_label: 5 年
+    time_tier_days: 1800
+    base_lifespan_years: 1200
+    exp_k_bp: 147573
     power_coef: 300.0
     breakthrough_base_bp: 6000
     enabled: false
@@ -123,8 +142,10 @@ realms:
     level_end: 63
     stage_count: 9
     stage_note: 燃灯一至九炼
-    base_lifespan_years: 800
-    exp_k_bp: 120000
+    time_tier_label: 8 年
+    time_tier_days: 2880
+    base_lifespan_years: 2500
+    exp_k_bp: 226097
     power_coef: 1000.0
     breakthrough_base_bp: 5500
     enabled: false
@@ -139,8 +160,10 @@ realms:
     level_end: 72
     stage_count: 9
     stage_note: 归一至归九
-    base_lifespan_years: 1200
-    exp_k_bp: 160000
+    time_tier_label: 10 年
+    time_tier_days: 3600
+    base_lifespan_years: 4000
+    exp_k_bp: 234940
     power_coef: 3000.0
     breakthrough_base_bp: 4800
     enabled: false
@@ -155,8 +178,10 @@ realms:
     level_end: 81
     stage_count: 9
     stage_note: 一至九品圣人
-    base_lifespan_years: 2000
-    exp_k_bp: 220000
+    time_tier_label: 20 年
+    time_tier_days: 7200
+    base_lifespan_years: 6000
+    exp_k_bp: 279775
     power_coef: 12000.0
     breakthrough_base_bp: 4000
     enabled: false
@@ -171,8 +196,10 @@ realms:
     level_end: 90
     stage_count: 9
     stage_note: 一至九重大圣
-    base_lifespan_years: 3000
-    exp_k_bp: 300000
+    time_tier_label: 100 年
+    time_tier_days: 36000
+    base_lifespan_years: 13000
+    exp_k_bp: 949852
     power_coef: 50000.0
     breakthrough_base_bp: 3200
     enabled: false
@@ -187,8 +214,10 @@ realms:
     level_end: 99
     stage_count: 9
     stage_note: 一至九重准帝
-    base_lifespan_years: 5000
-    exp_k_bp: 420000
+    time_tier_label: 1000 年
+    time_tier_days: 360000
+    base_lifespan_years: 80000
+    exp_k_bp: 7726604
     power_coef: 200000.0
     breakthrough_base_bp: 2000
     enabled: false
@@ -203,8 +232,10 @@ realms:
     level_end: 100
     stage_count: 1
     stage_note: 唯一（帝位）
-    base_lifespan_years: 10000
-    exp_k_bp: 420000
+    time_tier_label: 10000 年
+    time_tier_days: 3600000
+    base_lifespan_years: 120000
+    exp_k_bp: 7726604
     power_coef: 1000000.0
     breakthrough_base_bp: 0
     is_terminal: true
@@ -226,3 +257,11 @@ realms:
 #    锻血→辟府净增 50 年。
 # 4) 校验断言：realms 恰 12 条；enabled=true 恰为 forging_blood、open_palace；
 #    order 连续 1–12；level_start/level_end 覆盖 1–100 无空洞无重叠。
+# 5) 时间档位序列必须是（按 order）：
+#    1 月 / 3 月 / 6 月 / 1 年 / 3 年 / 5 年 / 8 年 / 10 年 / 20 年 / 100 年 /
+#    1000 年 / 10000 年，即 30 / 90 / 180 / 360 / 1080 / 1800 / 2880 / 3600 /
+#    7200 / 36000 / 360000 / 3600000 日。必须严格递增、不重复、且都是 30 的整数倍
+#    （保证 age_days 恒为整月）。validators 会在启动期 fail-fast。
+# 6) exp_k_bp 必须逐境单调不减 —— 这是「高境不得比低境更容易」的硬约束；
+#    base_lifespan_years 必须严格递增，且须覆盖「累计年龄」（16 + Σ 各境耗时），
+#    否则高境活不到突破。两条都由 validators + tests/game/test_realm_pacing.py 兜底。

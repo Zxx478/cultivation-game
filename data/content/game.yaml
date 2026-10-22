@@ -19,9 +19,10 @@ time:
   age_days_initial: 1
   game_year_formula: "(age_days - 1) // 360 + 1"
 
-# ---------- 行动基础耗时（境界动态化前的基准值） ----------
-# 实际耗时 = base_days × (1 + realm_time_factor × (realm_index - 1))
-# 锻血（realm_index=1）闭关 30 日；辟府（realm_index=2）闭关 42 日。
+# ---------- 行动基础耗时 ----------
+# 实际耗时 = base_days × realm_time_tier_days(境界) / action_tier_base_days
+# 档位表见 realms.yaml.time_tier_days（1 月 → 10000 年，30 → 3,600,000 日）。
+# 锻血（档位 30 日）闭关 30 日；辟府（档位 90 日）闭关 90 日。
 action_base_days:
   seclusion: 30      # 闭关
   adventure: 15      # 历练
@@ -30,8 +31,9 @@ action_base_days:
   meditate: 10       # 打坐
   breakthrough: 3    # 突破
 
-# 境界时间膨胀系数（0.40 → 每提升一大境，耗时 +40%）
-realm_time_factor: 0.40
+# 档位缩放基准（= 锻血档位日数）。改这个等于整体改变「档位 → 实际日数」的映射，
+# 必须同步重跑 tools/gen_pacing_table.py 与 tools/sim_progression.py。
+action_tier_base_days: 30
 
 # 单次请求内最多重复次数（"持续闭关"批量，降低点击成本）
 action_max_repeat: 10
@@ -40,10 +42,14 @@ action_max_repeat: 10
 # ExpRate_raw = (5 + 悟性 × 0.8) × (1 + 0.35 × (境界序号 - 1))
 #               × 功法系数 × 体质系数 × 环境系数 × 心境系数 × 状态系数
 # ExpRate = ExpRate_raw × exp_rate_global_bp / 10000
-# 单次闭关修为 = ExpRate × action_days("seclusion", realm_index)
+# 单次闭关修为 = ExpRate × action_days("seclusion", 本境档位)
 # 单级需求 Exp(L) = floor(100 × L^1.78 × K(realm))，K 见 realms.yaml.exp_k_bp
 exp:
-  exp_rate_global_bp: 15000     # 全局倍率 1.50×，唯一节奏调节旋钮
+  # 全局倍率 1.50×，**唯一节奏调节旋钮**。
+  # 安全区间 12000–24000（实测：12000→全程 643 次 / 寿元占用 64%；
+  #   24000→323 次 / 33%）。**低于 12000 会因寿元不足而无法通关**
+  #   （10000 → 占用 78%），改完必须重跑 tools/sim_progression.py。
+  exp_rate_global_bp: 15000
   base_constant: 5
   wis_factor_bp: 8000           # 悟性 × 0.8
   realm_growth_bp: 3500         # 每大境 +35%

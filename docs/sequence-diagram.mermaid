@@ -27,11 +27,11 @@ sequenceDiagram
     else 可行动
         R->>A: act(char_id, kind, repeat, expected_version)
         loop repeat 次（1..10，持续闭关）
-            A->>K: action_days(base=30, realm_index=2)
-            K-->>A: 42 日
-            A->>A: age_days += 42（只增不减）
+            A->>K: action_days(base=30, tier_days=90)  # 辟府档位 3 个月
+            K-->>A: 90 日
+            A->>A: age_days += 90（只增不减）
             A->>A: ExpRate = (5+wis*0.8)×境界×功法×体质×环境×心境×状态×1.50
-            A->>L: apply_exp(cultivation, ExpRate×42, exp_overflow)
+            A->>L: apply_exp(cultivation, ExpRate×90, exp_overflow)
             L-->>A: {levels_up≤5, cultivation, exp_overflow, realm_index}
             A->>G: next_int("event", 0, 9999) （counter 同事务 +1）
             G-->>A: 3721

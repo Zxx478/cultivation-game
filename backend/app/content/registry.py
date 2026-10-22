@@ -60,6 +60,18 @@ class Registry:
         """按等级取修为曲线系数 K（bp）。"""
         return self._content.realm_exp_k_bp(int(level))
 
+    def realm_time_tier_days(self, realm_index: int) -> int:
+        """按大境序号（1–12）取时间档位日数（一次闭关的日数）。"""
+        return self._content.realm_time_tier_days(int(realm_index))
+
+    def realm_time_tier_label(self, realm_index: int) -> str:
+        """按大境序号取时间档位文案（如「3 年」）。"""
+        return self._content.realm_time_tier_label(int(realm_index))
+
+    def action_tier_base_days(self) -> int:
+        """档位缩放基准（= 锻血档位日数，``game.yaml.action_tier_base_days``）。"""
+        return int(self._content.game["action_tier_base_days"])
+
     def technique(self, tech_id: str) -> Mapping[str, Any]:
         """取功法。"""
         return self._get(self._content.technique_by_id, tech_id, "technique")

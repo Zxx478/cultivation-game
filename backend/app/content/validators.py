@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Tuple
 
+from ..core.clock import DAYS_PER_MONTH, DAYS_PER_YEAR
+
 TIERS = {"fan", "ling", "bao", "sheng", "di"}
 SUB_TIERS = {"xia", "zhong", "shang"}
 TECH_TYPES = {"heart", "attack", "defense", "support"}
@@ -77,11 +79,32 @@ def _check_unique(items: Sequence[Mapping[str, Any]], key: str,
         seen.add(ident)
 
 
+#: 12 境时间档位的**权威序列**（按 order 依次），单位游戏日。
+#: 文案：1 月 / 3 月 / 6 月 / 1 年 / 3 年 / 5 年 / 8 年 / 10 年 / 20 年 / 100 年 / 1000 年 / 10000 年
+REALM_TIME_TIER_DAYS: Tuple[int, ...] = (
+    30, 90, 180, 360, 1080, 1800, 2880, 3600, 7200, 36000, 360000, 3600000,
+)
+
+
+def _tier_label_days(label: str) -> int:
+    """把「N 个月」/「N 年」解析成日数；格式非法返回 -1。"""
+    text = str(label).strip()
+    for suffix, unit in (("个月", DAYS_PER_MONTH), ("年", DAYS_PER_YEAR)):
+        if text.endswith(suffix):
+            head = text[: -len(suffix)].strip()
+            if head.isdigit():
+                return int(head) * unit
+    return -1
+
+
 def _check_realms(content: Any, problems: List[str]) -> None:
     orders = [int(r["order"]) for r in content.realms]
     if orders != list(range(1, len(content.realms) + 1)):
         problems.append("realms.order must be 1..12 contiguous")
     prev_end = 0
+    prev_k = 0
+    prev_life = 0
+    prev_tier = 0
     for realm in content.realms:
         start, end = int(realm["level_start"]), int(realm["level_end"])
         if start != prev_end + 1:
@@ -93,11 +116,42 @@ def _check_realms(content: Any, problems: List[str]) -> None:
             problems.append(f"realm {realm['id']}: exp_k_bp must be > 0")
         if int(realm["base_lifespan_years"]) <= 0:
             problems.append(f"realm {realm['id']}: base_lifespan_years must be > 0")
+
+        # --- 时间档位：必须是权威序列，且严格递增、整月 ---
+        tier = int(realm["time_tier_days"])
+        if tier <= 0:
+            problems.append(f"realm {realm['id']}: time_tier_days must be > 0")
+        elif tier % DAYS_PER_MONTH != 0:
+            problems.append(f"realm {realm['id']}: time_tier_days {tier} not a whole month")
+        if tier <= prev_tier:
+            problems.append(f"realm {realm['id']}: time_tier_days {tier} not increasing (prev {prev_tier})")
+        prev_tier = tier
+        label = str(realm.get("time_tier_label", ""))
+        if _tier_label_days(label) != tier:
+            problems.append(f"realm {realm['id']}: time_tier_label '{label}' "
+                            f"inconsistent with time_tier_days {tier}")
+
+        # --- 修为曲线：K 单调不减（高境不得比低境更容易 = 禁止倒挂） ---
+        k = int(realm["exp_k_bp"])
+        if k < prev_k:
+            problems.append(f"realm {realm['id']}: exp_k_bp {k} < prev {prev_k} (倒挂)")
+        prev_k = k
+
+        # --- 寿元：严格递增（突破是整体重算，不允许回退） ---
+        life = int(realm["base_lifespan_years"])
+        if life <= prev_life:
+            problems.append(f"realm {realm['id']}: base_lifespan_years {life} "
+                            f"not increasing (prev {prev_life})")
+        prev_life = life
+
         for need in realm.get("breakthrough_items", ()):
             if str(need["item_id"]) not in content.item_by_id:
                 problems.append(f"realm {realm['id']}: unknown item '{need['item_id']}'")
     if prev_end != 100:
         problems.append(f"realms must cover level 1..100, ended at {prev_end}")
+    tiers = tuple(int(r["time_tier_days"]) for r in content.realms)
+    if tiers != REALM_TIME_TIER_DAYS:
+        problems.append(f"realms.time_tier_days must be exactly {REALM_TIME_TIER_DAYS}, got {tiers}")
     enabled = [r["id"] for r in content.realms if r.get("enabled")]
     if enabled != ["forging_blood", "open_palace"]:
         problems.append(f"enabled realms must be exactly ['forging_blood','open_palace'], got {enabled}")
@@ -460,6 +514,14 @@ def _check_game(content: Any, problems: List[str]) -> None:
             problems.append(f"game.action_base_days.{key} must be {value}")
     if int(game.get("exp", {}).get("exp_rate_global_bp", 0)) != 15000:
         problems.append("game.exp.exp_rate_global_bp must be 15000")
+    # 档位缩放基准必须等于锻血档位，否则「档位 → 实际日数」会整体漂移
+    tier_base = int(game.get("action_tier_base_days", 0))
+    if tier_base != REALM_TIME_TIER_DAYS[0]:
+        problems.append(f"game.action_tier_base_days must be {REALM_TIME_TIER_DAYS[0]}, "
+                        f"got {tier_base}")
+    if "realm_time_factor" in game:
+        problems.append("game.realm_time_factor is deprecated; "
+                        "use realms.time_tier_days + action_tier_base_days")
     event_cfg = game.get("event", {})
     if int(event_cfg.get("trigger_bp", 0)) != 3500:
         problems.append("game.event.trigger_bp must be 3500")

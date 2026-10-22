@@ -96,7 +96,8 @@ def learn(tech_id: str) -> Dict[str, Any]:
     chance = max(500, min(9500, int(chance)))
     rng = RngService(str(char["rng_seed"]), int(char["rng_counter"]))
     ok = rng.roll_bp(chance, stream="technique:learn")
-    days = action_days(30, int(char["realm_index"]))
+    days = action_days(30, registry.realm_time_tier_days(int(char["realm_index"])),
+                       registry.action_tier_base_days())
     fields: Dict[str, Any] = {"age_days": int(char["age_days"]) + days,
                               "rng_counter": int(rng.counter) + 1}
     if ok:
@@ -134,7 +135,8 @@ def meditate(tech_id: str) -> Dict[str, Any]:
         sense -= need
         layer += 1
         leveled = True
-    days = action_days(30, int(char["realm_index"]))
+    days = action_days(30, registry.realm_time_tier_days(int(char["realm_index"])),
+                       registry.action_tier_base_days())
     TechniqueRepository.upsert(int(char["id"]), str(tech_id), layer=layer, sense=sense,
                                equipped_slot=str(row.get("equipped_slot") or ""))
     CharacterRepository.update(int(char["id"]), {"age_days": int(char["age_days"]) + days},

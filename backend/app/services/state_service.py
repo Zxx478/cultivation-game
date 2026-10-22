@@ -182,9 +182,10 @@ def state() -> Dict[str, Any]:
     realm = registry.realm_by_index(int(char["realm_index"]))
     region = registry.region(str(char.get("region_id") or "duanhuai_village"))
     left_days = int(char["lifespan_max_days"]) - int(char["age_days"])
-    # 闭关实际耗时随境界增长（锻血 30 / 辟府 42…），可闭关次数必须用它，不能用固定 30
-    seclusion_days = max(1, action_days(registry.action_base_days("seclusion"),
-                                       int(char["realm_index"])))
+    # 行动耗时按境界档位查表（锻血 30 日 / 辟府 90 日 / …），可闭关次数必须用它
+    tier = registry.realm_time_tier_days(int(char["realm_index"]))
+    tier_base = registry.action_tier_base_days()
+    seclusion_days = action_days(registry.action_base_days("seclusion"), tier, tier_base)
     closed_door_times = max(0, left_days // seclusion_days)
 
     quests = _quest_rows(char_id, char)
@@ -296,15 +297,19 @@ def state() -> Dict[str, Any]:
         "gain_preview": {
             "seclusion": {
                 "exp": int(retreat_gain),
-                "days": int(action_days(registry.action_base_days("seclusion"), int(char["realm_index"]))),
+                "days": int(seclusion_days),
                 "pct": round(retreat_gain / max(1, int(need)), 4),
             }
         },
-        # 基础耗时（配置值）与当前境界实际耗时（动态增长）分开暴露，便于 UI 与调参
+        # 基础耗时（配置值）与当前境界实际耗时（档位缩放）分开暴露，便于 UI 与调参
         "action_base_days": dict(registry.action_base_days_table()),
         "action_days": {
-            kind: int(action_days(int(days), int(char["realm_index"])))
+            kind: int(action_days(int(days), tier, tier_base))
             for kind, days in registry.action_base_days_table().items()
+        },
+        "time_tier": {
+            "label": registry.realm_time_tier_label(int(char["realm_index"])),
+            "days": int(tier),
         },
         "version": int(char.get("version", 1)),
     }

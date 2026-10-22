@@ -138,7 +138,9 @@ def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
 
     rng = RngService(str(char["rng_seed"]), int(char["rng_counter"]))
     success = True if result.guaranteed else rng.roll_bp(result.final_bp, stream="breakthrough")
-    days = action_days(int(registry.action_base_days("breakthrough")), int(char["realm_index"]))
+    days = action_days(int(registry.action_base_days("breakthrough")),
+                       registry.realm_time_tier_days(int(char["realm_index"])),
+                       registry.action_tier_base_days())
     attempts = int(char.get("realm_attempts", 0)) + 1
     fields: Dict[str, Any] = {
         "age_days": int(char["age_days"]) + days,

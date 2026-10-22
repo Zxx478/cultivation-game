@@ -76,17 +76,21 @@ def test_reroll_limit(client):
 
 
 def test_action_days_grow_with_realm(client):
-    """行动耗时随境界动态增长：锻血 30 → 辟府 42。"""
+    """行动耗时按境界档位查表：锻血（1 个月/30 日）→ 辟府（3 个月/90 日）。"""
     from app.db.game_repository import CharacterRepository
 
     bootstrap(client)
     char = CharacterRepository.get_active()
     state1 = client.get("/api/v1/state").json()["data"]
     assert state1["action_days"]["seclusion"] == 30
+    assert state1["action_days"]["adventure"] == 15
+    assert state1["time_tier"] == {"label": "1 个月", "days": 30}
     CharacterRepository.update(char["id"], {"level": 10, "realm_index": 2, "realm_stage": 1})
     state2 = client.get("/api/v1/state").json()["data"]
-    assert state2["action_days"]["seclusion"] == 42
-    assert state2["action_days"]["adventure"] == 21
+    assert state2["action_days"]["seclusion"] == 90
+    assert state2["action_days"]["adventure"] == 45
+    assert state2["action_days"]["spar"] == 9
+    assert state2["time_tier"] == {"label": "3 个月", "days": 90}
     assert state2["action_base_days"]["seclusion"] == 30
 
 
