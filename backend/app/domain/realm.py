@@ -242,6 +242,21 @@ def foundation_bp(attempts: int, cfg: Optional[Mapping[str, Any]] = None) -> int
     return int(foundation_of(attempts, cfg)["attr_bonus_bp"])
 
 
+def foundation_next_bp(foundation_name: Any,
+                       cfg: Optional[Mapping[str, Any]] = None) -> int:
+    """按已记录的根基名，取「对下一次突破」的成功率加成（bp）。
+
+    根基在突破成功时写入 ``character.foundation``，其 ``next_realm_bp``
+    应作用于下一境的冲关成功率；未突破过（空串）返回 0。
+    """
+    conf = _cfg(cfg)
+    name = str(foundation_name or "")
+    for row in conf["foundation"]:
+        if str(row["name"]) == name:
+            return int(row["next_realm_bp"])
+    return 0
+
+
 def lifespan_max_days(base_lifespan_years: int, *, extra_years: float = 0.0) -> int:
     """寿元上限（日）：``(基准年 + 加成) × 360``，突破成功时整体重算。"""
     return int((base_lifespan_years + extra_years) * DAYS_PER_YEAR)

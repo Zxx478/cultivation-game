@@ -84,7 +84,8 @@ def preview(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     result = realm_domain.preview_breakthrough(
         int(current["breakthrough_base_bp"]),
         physique_bp=int(physique.get("breakthrough_bp", 0)),
-        foundation_bp=0,
+        foundation_bp=realm_domain.foundation_next_bp(
+            char.get("foundation"), registry.breakthrough_config()),
         pill_count=prep["pill_count"], guardian=prep["guardian"],
         omen=prep["omen"], land=prep["land"],
         fail_streak=int(char.get("fail_streak", 0)),
@@ -123,7 +124,9 @@ def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     result = realm_domain.preview_breakthrough(
         int(current["breakthrough_base_bp"]),
         physique_bp=int(physique.get("breakthrough_bp", 0)),
-        foundation_bp=0, pill_count=pills, guardian=prep["guardian"],
+        foundation_bp=realm_domain.foundation_next_bp(
+            char.get("foundation"), registry.breakthrough_config()),
+        pill_count=pills, guardian=prep["guardian"],
         omen=prep["omen"], land=prep["land"],
         fail_streak=int(char.get("fail_streak", 0)),
         cfg=registry.breakthrough_config())
@@ -149,6 +152,7 @@ def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
             "cultivation": 0,
             "exp_overflow": int(char.get("exp_overflow", 0)),
             "fail_streak": 0,
+            "realm_attempts": 0,
             "foundation": str(foundation["name"]),
             "lifespan_max_days": realm_domain.lifespan_max_days(int(nxt["base_lifespan_years"])),
             "hp": 0,

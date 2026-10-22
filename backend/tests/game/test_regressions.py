@@ -143,3 +143,58 @@ def test_grant_is_idempotent():
     assert second["granted"] is False
     assert second["duplicate"] is True
     assert int(CharacterRepository.require(char_id)["spirit_stone"]) == 20
+
+
+# ---------------- P1-3 / P1-4：突破根基 ----------------
+
+def _maxed_realm1(**overrides):
+    from app.content import get_registry
+    from app.domain.level import exp_need
+
+    registry = get_registry()
+    need = exp_need(9, registry.exp_k_bp(9))
+    data = {
+        "name": "突破测试", "rng_seed": "seed-breakthrough", "version": 1,
+        "level": 9, "realm_index": 1, "realm_stage": 9,
+        "cultivation": need, "age_days": 1, "lifespan_max_days": 36000,
+    }
+    data.update(overrides)
+    return CharacterRepository.create(data)
+
+
+def test_foundation_next_bp_mapping():
+    from app.domain import realm as realm_domain
+
+    assert realm_domain.foundation_next_bp("圆满") == 300
+    assert realm_domain.foundation_next_bp("崩坏") == -500
+    assert realm_domain.foundation_next_bp("") == 0
+
+
+def test_breakthrough_resets_realm_attempts_and_keeps_foundation(monkeypatch):
+    """成功突破后 realm_attempts 归零；本境尝试次数决定根基。"""
+    from app.services import breakthrough_service
+
+    char_id = _maxed_realm1(realm_attempts=3, foundation="崩坏")
+    monkeypatch.setattr(
+        "app.services.breakthrough_service.RngService.roll_bp",
+        lambda self, *args, **kwargs: True,
+    )
+
+    result = breakthrough_service.execute()
+
+    assert result["success"] is True
+    assert result["level"] == 10
+    assert result["realm_index"] == 2
+    char = CharacterRepository.require(char_id)
+    assert char["realm_attempts"] == 0
+    assert char["foundation"] == "崩坏"
+
+
+def test_breakthrough_preview_uses_stored_foundation(monkeypatch):
+    """存下的根基必须体现在下一境的成功率明细里（崩坏 = -500bp）。"""
+    from app.services import breakthrough_service
+
+    _maxed_realm1(realm_attempts=0, foundation="崩坏")
+    preview = breakthrough_service.preview()
+    items = {item["key"]: item["value_bp"] for item in preview["items"]}
+    assert items["foundation"] == -500
