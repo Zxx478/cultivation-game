@@ -2,16 +2,46 @@
 
 覆盖：
 - P1-2：exp_overflow 必须在下一次结算回流；
-- P1-1：@atomic 嵌套事务必须整体回滚（内层 Repository 不得提前提交）。
+- P1-1：@atomic 嵌套事务必须整体回滚（内层 Repository 不得提前提交）；
+- P0-1：兑换校验必须前置，失败不得扣贡献；
+- P0-2：发奖失败必须整体回滚，重复调用必须幂等。
 """
 from __future__ import annotations
 
 import pytest
 
-from app.db.game_repository import CharacterRepository
-from app.db.repository import atomic
+from app.core.errors import ACTION_INVALID, ATTR_REQUIREMENT_NOT_MET, BAG_FULL
+from app.db.game_repository import (
+    CharacterRepository,
+    GrantLogRepository,
+    InventoryRepository,
+    TechniqueRepository,
+)
+from app.db.repository import atomic, transaction
+from app.db.repository import SectMemberRepository
 from app.domain.level import apply_exp
+from app.services import sect_bridge_service
+from app.services.grant_service import GrantService
 
+
+def _make_char(**overrides):
+    data = {"name": "回归测试", "rng_seed": "seed-regression", "version": 1}
+    data.update(overrides)
+    return CharacterRepository.create(data)
+
+
+def _make_disciple(char_id: int, contribution: int = 10000,
+                   sect_id: str = "qingyun_sword") -> None:
+    with transaction() as conn:
+        conn.execute(
+            "INSERT INTO sect_member "
+            "(character_id, sect_id, path_id, joined_at_days, contribution) "
+            "VALUES (?, ?, 'sword', 1, ?)",
+            (char_id, sect_id, contribution),
+        )
+
+
+# ---------------- P1-2 / P1-1 ----------------
 
 def test_exp_overflow_is_consumed_on_next_settlement():
     """5000 点溢出修为必须能续升，而不是沉在 exp_overflow 里。"""
@@ -47,3 +77,69 @@ def test_atomic_rolls_back_nested_repository_writes():
     char = CharacterRepository.require(char_id)
     assert char["level"] == 1
     assert char["version"] == 1
+
+
+# ---------------- P0-1 ----------------
+
+def test_exchange_validates_realm_before_deducting():
+    """境界不足必须在扣贡献之前拒绝，贡献不得变化。"""
+    char_id = _make_char(level=1, realm_index=1)
+    _make_disciple(char_id, contribution=10000)
+
+    with pytest.raises(Exception) as exc:
+        sect_bridge_service.exchange("technique", "qingfeng_three_strikes")
+
+    assert getattr(exc.value, "code", None) == ATTR_REQUIREMENT_NOT_MET
+    assert int(SectMemberRepository.get(char_id)["contribution"]) == 10000
+    assert TechniqueRepository.get(char_id, "qingfeng_three_strikes") is None
+
+
+def test_exchange_missing_content_does_not_deduct():
+    """内容不存在必须在扣贡献之前拒绝。"""
+    char_id = _make_char(level=10, realm_index=2)
+    _make_disciple(char_id, contribution=10000)
+
+    with pytest.raises(Exception) as exc:
+        sect_bridge_service.exchange("equipment", "no_such_equipment_xyz")
+
+    assert getattr(exc.value, "code", None) == ACTION_INVALID
+    assert int(SectMemberRepository.get(char_id)["contribution"]) == 10000
+
+
+# ---------------- P0-2 ----------------
+
+def test_grant_bag_full_rolls_back_everything():
+    """背包满时发奖必须整体回滚：修为/灵石/幂等日志都不得落库。"""
+    char_id = _make_char(bag_slots=1)
+    InventoryRepository.add(char_id, "juqi_dan", "pill", 1)
+
+    with pytest.raises(Exception) as exc:
+        GrantService.grant(
+            char_id,
+            {"exp": 100, "stones": 50,
+             "items": [{"item_id": "xi_sui_dan", "qty": 1}]},
+            source_type="test", source_ref="test:bagfull",
+        )
+
+    assert getattr(exc.value, "code", None) == BAG_FULL
+    char = CharacterRepository.require(char_id)
+    assert char["level"] == 1
+    assert char["cultivation"] == 0
+    assert char["spirit_stone"] == 0
+    assert GrantLogRepository.exists(char_id, "test", "test:bagfull") is False
+
+
+def test_grant_is_idempotent():
+    """同一 source_ref 重复发奖只生效一次。"""
+    char_id = _make_char()
+    rewards = {"stones": 20}
+
+    first = GrantService.grant(char_id, rewards,
+                               source_type="test", source_ref="test:idem")
+    second = GrantService.grant(char_id, rewards,
+                                source_type="test", source_ref="test:idem")
+
+    assert first["granted"] is True
+    assert second["granted"] is False
+    assert second["duplicate"] is True
+    assert int(CharacterRepository.require(char_id)["spirit_stone"]) == 20

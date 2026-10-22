@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Mapping, Optional
 from ..content import get_registry
 from ..core.clock import game_year
 from ..core.errors import (
+    ACTION_INVALID,
     ATTR_REQUIREMENT_NOT_MET,
     GAME_ERROR_CODES,
     PATH_NOT_ALLOWED,
@@ -29,6 +30,7 @@ from ..db.repository import (
     ForbiddenLandProgressRepository,
     SansxiuWalletRepository,
     SectMemberRepository,
+    atomic,
 )
 from ..services import ExchangeService, ForbiddenLandService, QuestService, SectServiceError
 from . import main_quest_service
@@ -342,54 +344,75 @@ def complete_sect_quest(quest_id: int) -> Dict[str, Any]:
     return result
 
 
+@atomic
 def exchange(item_type: str, item_id: str) -> Dict[str, Any]:
-    """兑换（复用既有资格校验 + 真正发放）。"""
+    """兑换（校验全部前置 → 扣费 → 发放，整笔单事务）。"""
     char = _char()
     identity = _identity(char)
     registry = get_registry()
-    sect_id = identity["sect_id"]
-    if not sect_id:
-        # 散修：从物品反查宗门
+    item_type = str(item_type)
+    item_id = str(item_id)
+
+    # ---- 1. 预检：内容存在 + 境界 + 类型，全部在扣费之前 ----
+    tech: Optional[Mapping[str, Any]] = None
+    template: Optional[Mapping[str, Any]] = None
+    item: Optional[Mapping[str, Any]] = None
+    if item_type == "technique":
         try:
-            tech = registry.technique(str(item_id))
-            sect_id = str(tech.get("sect_id") or "")
+            tech = registry.technique(item_id)
         except Exception:
-            sect_id = ""
+            raise GameError(ACTION_INVALID, f"功法不存在：{item_id}")
+        if int(tech.get("required_realm_index", 1)) > int(char["realm_index"]):
+            raise GameError(ATTR_REQUIREMENT_NOT_MET, "境界不足，暂不能修习该功法")
+    elif item_type == "equipment":
+        try:
+            template = registry.equip_template(item_id)
+        except Exception:
+            raise GameError(ACTION_INVALID, f"装备不存在：{item_id}")
+    elif item_type in ("pill", "material", "consumable"):
+        try:
+            item = registry.item(item_id)
+        except Exception:
+            raise GameError(ACTION_INVALID, f"物品不存在：{item_id}")
+        if item_type in ("material", "consumable"):
+            raise GameError(ACTION_INVALID, "该物品类型暂不支持宗门兑换")
+    else:
+        raise GameError(ACTION_INVALID, f"未知兑换类型：{item_type}")
+
+    # ---- 2. 确定宗门（散修按功法反查；其余类型需显式宗门） ----
+    sect_id = identity["sect_id"]
+    if not sect_id and tech is not None:
+        sect_id = str(tech.get("sect_id") or "")
     if not sect_id:
         raise GameError(PATH_NOT_ALLOWED, "无法确定兑换宗门")
+
+    # ---- 3. 背包容量预检（丹药类入包前） ----
+    if item is not None and InventoryRepository.get(int(char["id"]), item_id) is None:
+        used = InventoryRepository.distinct_slots(int(char["id"]))
+        if used >= int(char["bag_slots"]):
+            raise GameError(4015, "行囊已满", {"used": used, "slots": int(char["bag_slots"])})
+
+    # ---- 4. 扣费（加入当前外层事务，失败整体回滚） ----
     try:
         result = ExchangeService.check_and_exchange(
-            int(char["id"]), sect_id, str(item_type), str(item_id), 0,
+            int(char["id"]), sect_id, item_type, item_id, 0,
             int(char["age_days"]))
     except Exception as exc:
         raise _to_game_error(exc)
 
+    # ---- 5. 发放 ----
     granted: Dict[str, Any] = {}
-    if item_type == "technique":
-        try:
-            tech = registry.technique(str(item_id))
-        except Exception:
-            raise GameError(4028, f"功法不存在：{item_id}")
-        if int(tech.get("required_realm_index", 1)) > int(char["realm_index"]):
-            raise GameError(4029, "境界不足，暂不能修习该功法")
-        TechniqueRepository.upsert(int(char["id"]), str(item_id), layer=1)
-        granted["technique"] = str(item_id)
-    elif item_type == "equipment":
-        try:
-            template = registry.equip_template(str(item_id))
-        except Exception:
-            raise GameError(4028, f"装备不存在：{item_id}")
+    if tech is not None:
+        TechniqueRepository.upsert(int(char["id"]), item_id, layer=1)
+        granted["technique"] = item_id
+    elif template is not None:
         instance_id = EquipmentRepository.create(
-            int(char["id"]), str(item_id), slot=str(template["slot"]),
+            int(char["id"]), item_id, slot=str(template["slot"]),
             rarity=str(template.get("rarity") or "common"))
         granted["equipment_instance"] = instance_id
-    elif item_type in ("pill", "material", "consumable"):
-        try:
-            item = registry.item(str(item_id))
-        except Exception:
-            raise GameError(4028, f"物品不存在：{item_id}")
-        InventoryRepository.add(int(char["id"]), str(item_id), str(item["kind"]), 1)
-        granted["item"] = str(item_id)
+    elif item is not None:
+        InventoryRepository.add(int(char["id"]), item_id, str(item["kind"]), 1)
+        granted["item"] = item_id
     SaveService.autosave(int(char["id"]))
     return {**result, "granted": granted}
 

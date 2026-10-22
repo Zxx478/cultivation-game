@@ -14,7 +14,7 @@ import math
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 from ..content import get_registry
-from ..core.errors import BAG_FULL, CONTENT_INVALID, GameError
+from ..core.errors import BAG_FULL, CONTENT_INVALID, VERSION_CONFLICT, GameError
 from ..db.game_repository import (
     CharacterRepository,
     EquipmentRepository,
@@ -24,7 +24,7 @@ from ..db.game_repository import (
     LogRepository,
     TechniqueRepository,
 )
-from ..db.repository import SansxiuWalletRepository, SectMemberRepository
+from ..db.repository import SansxiuWalletRepository, SectMemberRepository, atomic
 from ..domain import attrs as attrs_domain
 from ..domain import level as level_domain
 
@@ -36,6 +36,7 @@ class GrantService:
     """幂等发奖服务。"""
 
     @staticmethod
+    @atomic
     def grant(char_id: int, rewards: Mapping[str, Any], *,
               source_type: str, source_ref: str,
               log_kind: str = "grant") -> Dict[str, Any]:
@@ -62,6 +63,22 @@ class GrantService:
         deltas: Dict[str, Any] = {}
         notes: List[str] = []
         fields: Dict[str, Any] = {}
+
+        # ---- 0. 预检：所有可失败校验前置，避免「发了一半才报错」 ----
+        registry = get_registry()
+        item_ids: List[str] = []
+        for entry in rewards.get("items", ()) or ():
+            item_id = str(entry.get("item_id"))
+            if int(entry.get("qty", 1)) <= 0:
+                continue
+            registry.item(item_id)          # 内容缺失 → 4028
+            item_ids.append(item_id)
+        for template_id in rewards.get("equipments", ()) or ():
+            registry.equip_template(str(template_id))
+        for tech_id in rewards.get("techniques", ()) or ():
+            registry.technique(str(tech_id))
+        if item_ids:
+            GrantService._ensure_bag_room_for(char_id, item_ids)
 
         # ---- 1. 修为 ----
         exp = int(rewards.get("exp", 0) or 0)
@@ -114,26 +131,26 @@ class GrantService:
         if fields:
             CharacterRepository.update(char_id, fields, expected_version=int(char["version"]))
 
-        # ---- 5. 道具（堆叠 + 背包上限） ----
+        # ---- 5. 道具（堆叠 + 背包上限已在预检校验） ----
         item_deltas: Dict[str, int] = {}
         for entry in rewards.get("items", ()) or ():
             item_id = str(entry.get("item_id"))
             qty = int(entry.get("qty", 1))
             if qty <= 0:
                 continue
-            item = get_registry().item(item_id)
+            item = registry.item(item_id)
             kind = str(item["kind"])
             stack = int(item.get("stack", DEFAULT_STACK.get(kind, 99)))
-            GrantService._ensure_bag_room(char_id, item_id)
-            InventoryRepository.add(char_id, item_id, kind, min(qty, stack * 99))
-            item_deltas[item_id] = qty
+            actual = min(qty, stack * 99)
+            InventoryRepository.add(char_id, item_id, kind, actual)
+            item_deltas[item_id] = item_deltas.get(item_id, 0) + actual
         if item_deltas:
             deltas["items"] = item_deltas
 
         # ---- 6. 装备（实例表，不堆叠） ----
         equip_deltas: List[int] = []
         for template_id in rewards.get("equipments", ()) or ():
-            template = get_registry().equip_template(str(template_id))
+            template = registry.equip_template(str(template_id))
             instance_id = EquipmentRepository.create(
                 char_id, str(template_id), slot=str(template["slot"]),
                 rarity=str(template.get("rarity") or "common"))
@@ -144,7 +161,7 @@ class GrantService:
         # ---- 7. 功法 ----
         tech_deltas: List[str] = []
         for tech_id in rewards.get("techniques", ()) or ():
-            tech = get_registry().technique(str(tech_id))
+            tech = registry.technique(str(tech_id))
             if int(tech["required_realm_index"]) > int(char["realm_index"]):
                 notes.append(f"《{tech['name']}》境界不足（需第 {tech['required_realm_index']} 境），暂未入库")
                 continue
@@ -175,8 +192,10 @@ class GrantService:
                 SansxiuWalletRepository.upsert(wallet)
                 deltas["sansxiu_contribution"] = contribution
 
-        GrantLogRepository.record(char_id, source_type, source_ref,
-                                  {"deltas": deltas, "notes": notes})
+        if not GrantLogRepository.record(char_id, source_type, source_ref,
+                                         {"deltas": deltas, "notes": notes}):
+            # 同一事务内副作用已执行，抛错触发整体回滚，避免并发重复发奖
+            raise GameError(VERSION_CONFLICT, "奖励结算冲突，请重试")
         LogRepository.add_event(char_id, log_kind,
                                 {"source_type": source_type, "source_ref": source_ref,
                                  "deltas": deltas})
@@ -185,18 +204,24 @@ class GrantService:
     # ---------------- 内部 ----------------
 
     @staticmethod
-    def _ensure_bag_room(char_id: int, item_id: str) -> None:
-        """背包未满校验（同物品已有堆叠则不占新格）。
+    def _ensure_bag_room_for(char_id: int, item_ids: List[str]) -> None:
+        """背包未满校验：同批次多个新物品按「新增格数」一次性核算。
 
         Raises:
             GameError: 4015 背包已满。
         """
-        if InventoryRepository.get(char_id, item_id) is not None:
-            return
         char = CharacterRepository.require(char_id)
         used = InventoryRepository.distinct_slots(char_id)
-        if used >= int(char["bag_slots"]):
-            raise GameError(BAG_FULL, "行囊已满", {"used": used, "slots": int(char["bag_slots"])})
+        new_ids: List[str] = []
+        for item_id in item_ids:
+            if item_id in new_ids:
+                continue
+            if InventoryRepository.get(char_id, item_id) is None:
+                new_ids.append(item_id)
+        if used + len(new_ids) > int(char["bag_slots"]):
+            raise GameError(BAG_FULL, "行囊已满",
+                            {"used": used, "incoming": len(new_ids),
+                             "slots": int(char["bag_slots"])})
 
     @staticmethod
     def batch(char_id: int, rewards_list: Iterable[Mapping[str, Any]], *,
