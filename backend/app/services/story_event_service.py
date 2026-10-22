@@ -13,6 +13,7 @@ from ..content import get_registry
 from ..core.errors import EVENT_OPTION_INVALID, NO_PENDING_EVENT, GameError
 from ..core.rng import RngService
 from ..db.game_repository import (
+    CHARACTER_FIELDS,
     CharacterRepository,
     FlagRepository,
     InventoryRepository,
@@ -20,15 +21,24 @@ from ..db.game_repository import (
     RelationRepository,
     TechniqueRepository,
 )
-from ..db.repository import SansxiuWalletRepository, atomic
-from ..db.repository import SansxiuWalletRepository
+from ..db.repository import atomic
 from ..domain import attrs as attrs_domain
 from ..domain import event as event_domain
 from ..domain import level as level_domain
+from . import effect_lines as effect_lines_service
 from . import main_quest_service
 from .context import active_char
 from .grant_service import GrantService
 from .save_service import SaveService
+
+#: 基础属性键 → character 列名（mnd 即道心，落在 dao_heart 列上）
+_ATTR_COLUMNS: Dict[str, str] = {"mnd": "dao_heart"}
+
+#: 需要额外夹取上下限的列（与 effects.karma / effects.dao_heart 分支保持一致）
+_ATTR_CLAMPS: Dict[str, Tuple[int, int]] = {
+    "dao_heart": (0, 100),
+    "karma": (-1000, 1000),
+}
 
 
 def _load_pending(char: Mapping[str, Any]) -> Dict[str, Any]:
@@ -100,11 +110,22 @@ def choose(instance_id: str, option_id: str) -> Dict[str, Any]:
         deltas["time_days"] = time_days
 
     # ---- 属性 ----
+    # character 表没有 mnd 列：基础属性 mnd（道心）落在 dao_heart 上，
+    # 与 stats_service 的换算保持一致，否则事件里的「道心 ±N」会被静默丢弃。
     caps = registry.attrs_config().get("soft_cap", {})
     for key, delta in dict(effects.get("attr") or {}).items():
-        if key in attrs_domain.BASE_KEYS:
-            current = int(char.get(key, 0))
-            fields[key] = attrs_domain.apply_soft_cap(key, current + int(delta), caps)
+        name = str(key)
+        if name not in attrs_domain.BASE_KEYS:
+            continue
+        column = _ATTR_COLUMNS.get(name, name)
+        if column not in CHARACTER_FIELDS:
+            continue
+        current = int(char.get(column, 0) or 0)
+        value = attrs_domain.apply_soft_cap(name, current + int(delta), caps)
+        low, high = _ATTR_CLAMPS.get(column, (None, None))
+        if low is not None and high is not None:
+            value = max(low, min(high, value))
+        fields[column] = value
     # ---- 修为 ----
     cult = int(effects.get("cultivation", 0) or 0)
     if cult:
@@ -201,5 +222,8 @@ def choose(instance_id: str, option_id: str) -> Dict[str, Any]:
         "chance_bp": int(result["chance_bp"]),
         "time_days": time_days,
         "deltas": deltas,
+        # 展示层唯一数据源：中文标签已在服务端译好，前端不必再猜键名
+        # 耗时由 UI 单独一行展示（result.time_days），此处不重复
+        "effect_lines": effect_lines_service.build(effects, registry),
         "title": str(event.get("title", "")),
     }
