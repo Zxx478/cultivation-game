@@ -198,3 +198,98 @@ def test_breakthrough_preview_uses_stored_foundation(monkeypatch):
     preview = breakthrough_service.preview()
     items = {item["key"]: item["value_bp"] for item in preview["items"]}
     assert items["foundation"] == -500
+
+
+# ---------------- P1-5：写接口守卫 ----------------
+
+def test_write_api_rejected_while_event_pending():
+    """有待决事件时，任何改角色状态的写接口都必须拒绝。"""
+    from app.core.errors import NO_PENDING_EVENT
+    from app.services import progress_service
+
+    char_id = _make_char()
+    CharacterRepository.update(char_id, {"pending_event": '{"event_id":"x"}'})
+
+    with pytest.raises(Exception) as exc:
+        progress_service.travel("duanhuai_village")
+    assert getattr(exc.value, "code", None) == NO_PENDING_EVENT
+
+
+def test_write_api_rejected_while_combat_active():
+    """战斗进行中，背包/功法等写接口必须拒绝。"""
+    from app.core.errors import COMBAT_NOT_FOUND
+    from app.db.game_repository import CombatSessionRepository
+    from app.services import progress_service
+
+    char_id = _make_char()
+    CombatSessionRepository.save(char_id, {"max_turns": 30}, status="active", turn=1)
+
+    with pytest.raises(Exception) as exc:
+        progress_service.use_item("juqi_dan")
+    assert getattr(exc.value, "code", None) == COMBAT_NOT_FOUND
+
+
+# ---------------- P1-7：散修奇遇年度上限 ----------------
+
+def test_sansxiu_encounter_yearly_cap():
+    """同一游戏年奇遇次数不得超过配置上限。"""
+    from app.config import load
+
+    char_id = _make_char(path_id="sansxiu", rng_seed="seed-encounter")
+    limit = int(load().sansxiu_encounter_max_per_year)
+    for _ in range(limit):
+        sect_bridge_service.sansxiu_encounter()
+
+    with pytest.raises(Exception) as exc:
+        sect_bridge_service.sansxiu_encounter()
+    assert getattr(exc.value, "code", None) == 3003
+
+
+# ---------------- P1-6 / P1-8：战斗收尾 ----------------
+
+def test_enemy_fled_grants_only_half_exp():
+    """敌人逃跑只发一半经验，不发灵石/掉落，也不计击杀。"""
+    from app.core.rng import RngService
+    from app.db.game_repository import FlagRepository
+    from app.services import combat_service
+
+    char_id = _make_char()
+    session = {
+        "meta": {"enemy_id": "wolf", "session_id": "fled-1",
+                 "rewards": {"exp": 100, "stones": 50, "drops": []}},
+        "flags": {"enemy_fled": True},
+        "player": {"hp": 10, "mp": 5},
+    }
+    result = combat_service._after_victory(
+        char_id, {"char_id": char_id}, session, RngService("seed-fled"))
+
+    assert result["enemy_fled"] is True
+    assert result["drops"] == {}
+    char = CharacterRepository.require(char_id)
+    assert char["cultivation"] == 50
+    assert char["spirit_stone"] == 0
+    assert FlagRepository.get(char_id, "kill:wolf") is None
+
+
+def test_forbidden_settlement_failure_does_not_keep_session():
+    """禁地回调失败也必须先结束会话，玩家不能卡在「战斗尚未结束」。"""
+    from app.core.rng import RngService
+    from app.db.game_repository import CombatSessionRepository
+    from app.services import combat_service
+
+    char_id = _make_char()
+    session = {
+        "meta": {"kind": "forbidden", "enemy_id": "boss",
+                 "session_id": "forbidden-1",
+                 "rewards": {"exp": 0, "stones": 0, "drops": []},
+                 "extra": {"land_id": "no_such_land", "attempt": 1}},
+        "flags": {},
+        "player": {"hp": 10, "mp": 5},
+    }
+    CombatSessionRepository.save(char_id, session, status="victory", turn=1)
+
+    result = combat_service._after_victory(
+        char_id, {"char_id": char_id}, session, RngService("seed-forbidden"))
+
+    assert "forbidden_error" in result
+    assert CombatSessionRepository.get(char_id) is None

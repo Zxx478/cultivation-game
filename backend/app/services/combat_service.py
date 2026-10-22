@@ -27,6 +27,7 @@ from ..db.game_repository import (
     InventoryRepository,
     LogRepository,
 )
+from ..db.repository import atomic
 from ..domain import combat as combat_domain
 from . import main_quest_service
 from .context import active_char
@@ -117,22 +118,37 @@ def _persist_vitals(char_id: int, session: Mapping[str, Any]) -> None:
     }, expected_version=int(char["version"]))
 
 
+@atomic
 def _after_victory(char_id: int, row: Mapping[str, Any], session: Mapping[str, Any],
                    rng: RngService) -> Dict[str, Any]:
-    """胜利结算：修为/灵石/掉落/击杀/主线/禁地。"""
+    """胜利结算：修为/灵石/掉落/击杀/主线/禁地。
+
+    - 敌人逃跑：只发一半经验，不发灵石/掉落，也不计击杀；
+    - 先删除战斗会话，再结算禁地，避免回调异常把玩家卡在「战斗未结束」。
+    """
     meta = dict(session.get("meta") or {})
     rewards = dict(meta.get("rewards") or {})
+    flags = dict(session.get("flags") or {})
+    enemy_fled = bool(flags.get("enemy_fled"))
     _persist_vitals(char_id, session)
     char = CharacterRepository.require(char_id)
     enemy_id = str(meta.get("enemy_id") or "")
-    drops = _roll_drops(char_id, rewards.get("drops"), rng)
-    items = [{"item_id": k, "qty": v} for k, v in drops.items()]
-    payload = {"exp": int(rewards.get("exp", 0)), "stones": int(rewards.get("stones", 0)),
-               "items": items}
     session_id = str(meta.get("session_id") or f"{char_id}:{char['age_days']}")
+
+    if enemy_fled:
+        drops: Dict[str, int] = {}
+        payload = {"exp": int(rewards.get("exp", 0)) // 2, "stones": 0, "items": []}
+    else:
+        drops = _roll_drops(char_id, rewards.get("drops"), rng)
+        payload = {
+            "exp": int(rewards.get("exp", 0)),
+            "stones": int(rewards.get("stones", 0)),
+            "items": [{"item_id": k, "qty": v} for k, v in drops.items()],
+        }
+
     grant = GrantService.grant(char_id, payload, source_type="combat",
                                source_ref=f"combat:{session_id}")
-    if enemy_id:
+    if enemy_id and not enemy_fled:
         key = f"kill:{enemy_id}"
         try:
             count = int(FlagRepository.get(char_id, key, "0") or 0) + 1
@@ -141,19 +157,30 @@ def _after_victory(char_id: int, row: Mapping[str, Any], session: Mapping[str, A
         FlagRepository.set(char_id, key, str(count))
         main_quest_service.advance(char_id, {"type": "kill", "enemy_id": enemy_id, "count": 1})
     LogRepository.add_event(char_id, "combat",
-                            {"result": "victory", "enemy_id": enemy_id, "grant": grant})
+                            {"result": "enemy_fled" if enemy_fled else "victory",
+                             "enemy_id": enemy_id, "grant": grant})
     result: Dict[str, Any] = {"result": "victory", "enemy_id": enemy_id,
-                              "drops": drops, "grant": grant}
-    # 禁地 Boss：交给桥接层扣贡献 / 首通 / 发功法
+                              "enemy_fled": enemy_fled, "drops": drops, "grant": grant}
+
+    # 先结束会话：禁地回调异常也不能让玩家卡在「战斗尚未结束」
+    CombatSessionRepository.delete(char_id)
+
     if str(meta.get("kind")) == "forbidden" and meta.get("extra", {}).get("land_id"):
         from .sect_bridge_service import complete_forbidden
-        result["forbidden"] = complete_forbidden(
-            char_id, str(meta["extra"]["land_id"]), int(meta["extra"].get("attempt", 1)))
-    CombatSessionRepository.delete(char_id)
+        land_id = str(meta["extra"]["land_id"])
+        try:
+            result["forbidden"] = complete_forbidden(
+                char_id, land_id, int(meta["extra"].get("attempt", 1)))
+        except Exception as exc:  # 结算失败不阻断主流程，记录待补
+            result["forbidden_error"] = str(exc)
+            LogRepository.add_event(char_id, "forbidden_error",
+                                    {"land_id": land_id, "error": str(exc)})
+
     SaveService.autosave(char_id)
     return result
 
 
+@atomic
 def _after_defeat(char_id: int, session: Mapping[str, Any]) -> Dict[str, Any]:
     """失败结算：还魂丹续战，否则置 dead。"""
     inv = InventoryRepository.get(char_id, "jiuzhuan_huanshun")
@@ -172,6 +199,7 @@ def _after_defeat(char_id: int, session: Mapping[str, Any]) -> Dict[str, Any]:
     return {"result": "defeat", "revived": False, "dead": True}
 
 
+@atomic
 def act(action_type: str, *, skill_id: Optional[str] = None,
         item_id: Optional[str] = None) -> Dict[str, Any]:
     """执行一回合。

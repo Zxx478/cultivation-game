@@ -34,7 +34,7 @@ from ..db.repository import (
 )
 from ..services import ExchangeService, ForbiddenLandService, QuestService, SectServiceError
 from . import main_quest_service
-from .context import active_char
+from .context import active_char, writable_char
 from .grant_service import GrantService
 from .save_service import SaveService
 from .stats_service import build as build_stats
@@ -50,7 +50,12 @@ def _to_game_error(exc: Exception) -> GameError:
 
 
 def _char() -> Dict[str, Any]:
-    """当前角色（存活）。"""
+    """当前角色（存活），**写操作用**：待决事件/战斗中一律拒绝。"""
+    return writable_char()
+
+
+def _read_char() -> Dict[str, Any]:
+    """当前角色（存活），**只读用**：不拦截待决事件/战斗。"""
     return active_char(alive=True)
 
 
@@ -101,7 +106,7 @@ def _missing_join(sec: Mapping[str, Any], char: Mapping[str, Any]) -> List[str]:
 
 def overview() -> Dict[str, Any]:
     """宗门面板：身份 + 6 宗门条件 + 方向树 + 兑换 + 散修。"""
-    char = _char()
+    char = _read_char()
     registry = get_registry()
     identity = _identity(char)
     sects: List[Dict[str, Any]] = []
@@ -222,6 +227,7 @@ def overview() -> Dict[str, Any]:
     }
 
 
+@atomic
 def join(sect_id: str) -> Dict[str, Any]:
     """加入宗门，或选择散修。
 
@@ -287,6 +293,7 @@ def join(sect_id: str) -> Dict[str, Any]:
             "sect_name": str(sec.get("name", "")), "converted_contribution": converted}
 
 
+@atomic
 def choose_direction(direction_id: str) -> Dict[str, Any]:
     """定方向（首次免费；入宗后才能定）。"""
     char = _char()
@@ -310,6 +317,7 @@ def choose_direction(direction_id: str) -> Dict[str, Any]:
     return {"direction_id": str(direction_id), "direction_name": str(direction.get("name", ""))}
 
 
+@atomic
 def take_sect_quest(level: str) -> Dict[str, Any]:
     """接宗门任务（复用既有 Service）。"""
     char = _char()
@@ -326,6 +334,7 @@ def take_sect_quest(level: str) -> Dict[str, Any]:
         raise _to_game_error(exc)
 
 
+@atomic
 def complete_sect_quest(quest_id: int) -> Dict[str, Any]:
     """完成宗门任务，并把灵石同步到角色。"""
     char = _char()
@@ -417,11 +426,20 @@ def exchange(item_type: str, item_id: str) -> Dict[str, Any]:
     return {**result, "granted": granted}
 
 
+@atomic
 def sansxiu_encounter() -> Dict[str, Any]:
-    """散修奇遇（3 条池，按权重抽）。"""
+    """散修奇遇（3 条池，按权重抽；每游戏年有次数上限）。"""
     char = _char()
     if str(char.get("path_id")) != "sansxiu":
         raise GameError(PATH_NOT_ALLOWED, "只有散修可触发奇遇")
+    from ..config import load as load_sect_cfg
+    cfg = load_sect_cfg()
+    year = game_year(int(char["age_days"]))
+    key = f"sansxiu_encounter_year:{year}"
+    used = int(FlagRepository.get(int(char["id"]), key, "0") or 0)
+    if used >= int(cfg.sansxiu_encounter_max_per_year):
+        raise GameError(3003, "本游戏年奇遇次数已用尽")
+    FlagRepository.set(int(char["id"]), key, str(used + 1))
     registry = get_registry()
     from ..core.rng import RngService
     rng = RngService(str(char["rng_seed"]), int(char["rng_counter"]))
@@ -460,7 +478,7 @@ def convert_sansxiu() -> Dict[str, Any]:
 
 def forbidden_list() -> Dict[str, Any]:
     """禁地面板：10 处配置 + 已启用 2 处 + 进度。"""
-    char = _char()
+    char = _read_char()
     registry = get_registry()
     from ..config import load as load_sect_cfg
     cfg = load_sect_cfg()
@@ -505,6 +523,7 @@ def forbidden_list() -> Dict[str, Any]:
             "sansxiu_only": True}
 
 
+@atomic
 def enter_forbidden(land_id: str) -> Dict[str, Any]:
     """进入禁地：散修限定 → 扣耗时 → 开 Boss 战。"""
     char = _char()
@@ -545,6 +564,7 @@ def enter_forbidden(land_id: str) -> Dict[str, Any]:
     return {"combat": combat, "land_id": str(land_id), "attempt": attempt}
 
 
+@atomic
 def complete_forbidden(char_id: int, land_id: str, attempt: int) -> Dict[str, Any]:
     """Boss 胜利后：调既有 Service 扣贡献/置首通/掉落，再发放到角色。"""
     char = CharacterRepository.require(char_id)

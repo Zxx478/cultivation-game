@@ -96,6 +96,9 @@ contribution:
   # v1.7 新增：散修入宗时，general_contribution × 此比例转换为宗门 contribution
   sansxiu_join_convert_rate: 0.5
 
+  # 散修奇遇：每游戏年最多触发次数（防止无限刷贡献/功法）
+  sansxiu_encounter_max_per_year: 3
+
 # ---------- 禁地 MVP ----------
 forbidden_land:
   # MVP 开放 2 处低阶禁地，散修掉率 +10%

@@ -91,6 +91,7 @@ class SectConfig:
 
     sansxiu_general_share: SansxiuGeneralShareConfig
     sansxiu_join_convert_rate: float
+    sansxiu_encounter_max_per_year: int
     sansxiu_exchange_reputation_required: ExchangeReputationThreshold
     sansxiu_min_reputation_to_take_quest: int
 
@@ -214,6 +215,8 @@ def load(config_path: Optional[str] = None) -> SectConfig:
             high=float(contrib["sansxiu_general_share"]["high"]),
         ),
         sansxiu_join_convert_rate=float(contrib["sansxiu_join_convert_rate"]),
+        sansxiu_encounter_max_per_year=int(
+            contrib.get("sansxiu_encounter_max_per_year", 3)),
         sansxiu_exchange_reputation_required=ExchangeReputationThreshold(
             low_technique=int(contrib["sansxiu_exchange_reputation_required"]["low_technique"]),
             mid_technique=int(contrib["sansxiu_exchange_reputation_required"]["mid_technique"]),
