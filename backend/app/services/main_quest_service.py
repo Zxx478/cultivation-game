@@ -16,7 +16,9 @@ from ..db.game_repository import (
     InventoryRepository,
     QuestRepository,
 )
+from ..db.repository import atomic
 from ..domain import quest as quest_domain
+from .context import assert_idle
 from .grant_service import GrantService
 
 
@@ -96,6 +98,7 @@ def sync(char_id: int, quest_id: Optional[str] = None) -> Dict[str, Any]:
     return {"synced": touched}
 
 
+@atomic
 def claim(char_id: int, quest_id: str) -> Dict[str, Any]:
     """领取主线奖励。
 
@@ -103,6 +106,7 @@ def claim(char_id: int, quest_id: str) -> Dict[str, Any]:
         GameError: 4030 任务不存在 / 4029 目标未达成 / 409 已领取。
     """
     registry = get_registry()
+    assert_idle(CharacterRepository.require(char_id))
     try:
         quest = registry.quest(quest_id)
     except Exception:

@@ -157,18 +157,34 @@ def transaction() -> Iterator[sqlite3.Connection]:
     conn = get_conn()
     with _lock:
         depth = int(getattr(_tx_state, "depth", 0))
-        _tx_state.depth = depth + 1
-        try:
-            yield conn
-        except Exception:
-            if depth == 0:
+        if depth == 0:
+            # 显式开启外层事务，保证内层 SAVEPOINT 一定处于事务中
+            if not conn.in_transaction:
+                conn.execute("BEGIN")
+            _tx_state.depth = 1
+            try:
+                yield conn
+            except Exception:
                 conn.rollback()
-            raise
-        else:
-            if depth == 0:
+                raise
+            else:
                 conn.commit()
-        finally:
-            _tx_state.depth = depth
+            finally:
+                _tx_state.depth = 0
+        else:
+            name = f"sp_{depth}"
+            conn.execute(f"SAVEPOINT {name}")
+            _tx_state.depth = depth + 1
+            try:
+                yield conn
+            except Exception:
+                conn.execute(f"ROLLBACK TO SAVEPOINT {name}")
+                conn.execute(f"RELEASE SAVEPOINT {name}")
+                raise
+            else:
+                conn.execute(f"RELEASE SAVEPOINT {name}")
+            finally:
+                _tx_state.depth = depth
 
 
 def atomic(func: Callable[..., Any]) -> Callable[..., Any]:

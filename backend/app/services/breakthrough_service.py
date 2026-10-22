@@ -18,7 +18,7 @@ from ..db.game_repository import CharacterRepository, FlagRepository, InventoryR
 from ..domain import attrs as attrs_domain
 from ..domain import level as level_domain
 from ..domain import realm as realm_domain
-from .context import active_char
+from .context import active_char, writable_char
 from . import main_quest_service
 from .save_service import SaveService
 
@@ -111,7 +111,7 @@ def _pill_count(char_id: int) -> int:
 
 def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     """执行突破。"""
-    char = active_char(alive=True)
+    char = writable_char()
     ctx = _base_context(char)
     current, nxt, registry = ctx["bundle"]["current"], ctx["bundle"]["next"], ctx["bundle"]["registry"]
     prep = _prep(req)

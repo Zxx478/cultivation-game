@@ -38,6 +38,7 @@ from ..domain import combat as combat_domain
 from ..domain import event as event_domain
 from ..domain import level as level_domain
 from . import main_quest_service, stats_service
+from ..db.repository import atomic
 from .context import active_char
 from .save_service import SaveService
 
@@ -255,6 +256,7 @@ def _append_items(char_id: int, items: Dict[str, int]) -> Dict[str, int]:
     return got
 
 
+@atomic
 def execute(kind: str, *, repeat: int = 1) -> Dict[str, Any]:
     """执行一次行动。
 

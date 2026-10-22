@@ -28,7 +28,8 @@ from ..db.game_repository import (
 )
 from ..domain import attrs as attrs_domain
 from ..domain import level as level_domain
-from .context import active_char
+from ..db.repository import atomic
+from .context import active_char, writable_char
 from .save_service import SaveService
 from .stats_service import build as build_stats
 
@@ -40,13 +41,18 @@ SLOT_CATEGORY = {"heart": "heart", "atk1": "attack", "atk2": "attack", "atk3": "
 
 
 def _char() -> Dict[str, Any]:
-    """当前角色（存活）。"""
+    """当前角色（存活），**写操作用**：待决事件/战斗中一律拒绝。"""
+    return writable_char()
+
+
+def _read_char() -> Dict[str, Any]:
+    """当前角色（存活），**只读用**：不拦截待决事件/战斗。"""
     return active_char(alive=True)
 
 
 def list_techniques() -> Dict[str, Any]:
     """已学功法 + 装备槽。"""
-    char = _char()
+    char = _read_char()
     registry = get_registry()
     rows = []
     for row in TechniqueRepository.list_for(int(char["id"])):
@@ -71,6 +77,7 @@ def list_techniques() -> Dict[str, Any]:
     return {"techniques": rows, "equipped": equipped}
 
 
+@atomic
 def learn(tech_id: str) -> Dict[str, Any]:
     """学习功法（只允许已获得但未入库的功法）。"""
     char = _char()
@@ -103,6 +110,7 @@ def learn(tech_id: str) -> Dict[str, Any]:
             "layer": 1 if ok else 0}
 
 
+@atomic
 def meditate(tech_id: str) -> Dict[str, Any]:
     """参悟升层（1 个月 / 次）。"""
     char = _char()
@@ -137,6 +145,7 @@ def meditate(tech_id: str) -> Dict[str, Any]:
             "gain": gain, "leveled": leveled, "days": days}
 
 
+@atomic
 def equip(tech_id: str, slot: str) -> Dict[str, Any]:
     """装备功法到槽位。"""
     char = _char()
@@ -162,6 +171,7 @@ def equip(tech_id: str, slot: str) -> Dict[str, Any]:
     return {"tech_id": str(tech_id), "slot": slot}
 
 
+@atomic
 def unequip(tech_id: str, slot: Optional[str] = None) -> Dict[str, Any]:
     """卸下功法（按槽位）。"""
     char = _char()
@@ -179,7 +189,7 @@ def unequip(tech_id: str, slot: Optional[str] = None) -> Dict[str, Any]:
 
 def list_inventory(tab: Optional[str] = None) -> Dict[str, Any]:
     """背包分页。"""
-    char = _char()
+    char = _read_char()
     registry = get_registry()
     rows = []
     for row in InventoryRepository.list_for(int(char["id"]), item_type=None if tab in (None, "all") else tab):
@@ -219,6 +229,7 @@ def list_inventory(tab: Optional[str] = None) -> Dict[str, Any]:
             + len([e for e in equipment if not e["equipped"]])}
 
 
+@atomic
 def use_item(item_id: str, qty: int = 1) -> Dict[str, Any]:
     """使用丹药/消耗品。"""
     char = _char()
@@ -275,6 +286,7 @@ def use_item(item_id: str, qty: int = 1) -> Dict[str, Any]:
     return {"item_id": str(item_id), "qty": qty, "deltas": deltas}
 
 
+@atomic
 def sell_item(item_id: str, qty: int = 1) -> Dict[str, Any]:
     """出售物品。"""
     char = _char()
@@ -292,6 +304,7 @@ def sell_item(item_id: str, qty: int = 1) -> Dict[str, Any]:
     return {"item_id": str(item_id), "qty": qty, "spirit_stone": price}
 
 
+@atomic
 def equip_equipment(instance_id: int) -> Dict[str, Any]:
     """穿戴装备。"""
     char = _char()
@@ -303,6 +316,7 @@ def equip_equipment(instance_id: int) -> Dict[str, Any]:
     return {"instance_id": int(instance_id), "slot": slot}
 
 
+@atomic
 def unequip_equipment(instance_id: int) -> Dict[str, Any]:
     """卸下装备。"""
     char = _char()
@@ -315,6 +329,7 @@ def unequip_equipment(instance_id: int) -> Dict[str, Any]:
     return {"instance_id": int(instance_id), "slot": str(rows[0]["slot"])}
 
 
+@atomic
 def enhance(instance_id: int) -> Dict[str, Any]:
     """强化装备（+5 上限，失败不降级）。"""
     char = _char()
@@ -352,7 +367,7 @@ def enhance(instance_id: int) -> Dict[str, Any]:
 
 def list_map() -> Dict[str, Any]:
     """20 区域（已开放 + 等级门槛）。"""
-    char = _char()
+    char = _read_char()
     registry = get_registry()
     rows = []
     for region in registry.regions():
@@ -375,6 +390,7 @@ def list_map() -> Dict[str, Any]:
     return {"regions": rows, "current": str(char.get("region_id") or "")}
 
 
+@atomic
 def travel(region_id: str) -> Dict[str, Any]:
     """前往区域（耗时 + 境界门槛）。"""
     char = _char()

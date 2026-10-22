@@ -20,6 +20,7 @@ from ..db.game_repository import (
     RelationRepository,
     TechniqueRepository,
 )
+from ..db.repository import SansxiuWalletRepository, atomic
 from ..db.repository import SansxiuWalletRepository
 from ..domain import attrs as attrs_domain
 from ..domain import event as event_domain
@@ -55,6 +56,7 @@ def _personality_mod(char: Mapping[str, Any], choice: Mapping[str, Any]) -> int:
     return int(dict(person.get("check_mod_bp") or {}).get(style, 0))
 
 
+@atomic
 def choose(instance_id: str, option_id: str) -> Dict[str, Any]:
     """结算一个事件选项。
 

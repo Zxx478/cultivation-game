@@ -26,6 +26,7 @@ from ..db.game_repository import (
     QuestRepository,
     TechniqueRepository,
 )
+from ..db.repository import atomic
 from ..domain import attrs as attrs_domain
 from ..domain import level as level_domain
 from .grant_service import GrantService
@@ -131,6 +132,7 @@ class BootstrapService:
     # ---------------- 建角 ----------------
 
     @staticmethod
+    @atomic
     def create(req: Mapping[str, Any]) -> Dict[str, Any]:
         """建角。
 
