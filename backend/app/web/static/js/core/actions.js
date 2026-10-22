@@ -120,97 +120,268 @@ export function renderSettle(container, data, emptyText = '此行事了，无甚
   }
 }
 
+/* ============================================================
+   效果清单（事件 / 战斗 / 突破 / 兑换共用）
+   ============================================================ */
+
+/** 十项基础属性（与 panes/character.js 的 BASIC_LABELS 一致；mnd 即道心） */
+const ATTR_LABELS = {
+  str: '力量',
+  con: '体魄',
+  spr: '灵力',
+  sen: '神识',
+  bon: '根骨',
+  wis: '悟性',
+  agi: '身法',
+  luk: '气运',
+  mnd: '道心',
+  karma: '因果',
+  dao_heart: '道心',
+};
+
+/** 角色状态（与 core/ui.js 的 statusBadge 一致） */
+const STATUS_LABELS = {
+  normal: '无恙',
+  injured: '负伤',
+  qi_deviation: '走火入魔',
+  dead: '已坐化',
+  deceased: '已坐化',
+};
+
+/** 效果类型 → 中文名 */
+const TYPE_LABELS = {
+  cultivation: '修为',
+  exp: '修为',
+  spirit_stone: '灵石',
+  stones: '灵石',
+  karma: '因果',
+  dao_heart: '道心',
+  contribution: '贡献',
+  hp_pct: '气血',
+  mp_pct: '灵力',
+  attr: '属性',
+  status: '状态',
+  favor: '好感',
+  technique: '功法',
+  buff: '增益',
+  time: '耗时',
+  time_days: '耗时',
+  time_cost_days: '耗时',
+};
+
+/** 只做记账、绝不展示的字段（chance_bp 尤其不得展示，设计 §3.5） */
+const INTERNAL_KEYS = new Set([
+  'success', 'chance_bp', 'effects', 'flags', 'unhandled', 'rng_counter', 'level', 'levels_gained',
+]);
+
+/** 内部英文标识（用于兜底：宁可不显示，也不把引擎键名抛给玩家） */
+const isInternalKey = (token) => /^[\x20-\x7e]*$/.test(String(token));
+
+function dictOf(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+/** 把「数组 / 对象 / 单值」统一成 [键, 值] 列表 */
+function pairsOf(value) {
+  if (value === undefined || value === null) return [];
+  if (Array.isArray(value)) return value.map((item) => [null, item]);
+  const map = dictOf(value);
+  if (map) return Object.keys(map).map((key) => [key, map[key]]);
+  return [[null, value]];
+}
+
+/** 键 → 中文；未知英文键返回空串 */
+function labelOf(raw, labels) {
+  const key = raw === undefined || raw === null ? '' : String(raw);
+  if (!key) return '';
+  if (labels && labels[key]) return labels[key];
+  return isInternalKey(key) ? '' : key;
+}
+
 /**
- * 效果清单（事件/战斗/兑换共用）。
- * 支持 [{label,value}]、[{type,value,key}]、{attr:{...}} 三种形态。
+ * 效果清单（已译成中文）。
+ * 支持 [{label,value}]、[{type,value,key}]、{attr:{...}}、EffectOutcome 字典四种形态。
  */
 export function effectLines(effects) {
   const list = [];
   if (!effects) return list;
 
-  const push = (label, value) => {
-    if (label === null || label === undefined) return;
+  const pushNum = (label, value, suffix = '') => {
+    if (!label) return;
     const number = num(value, null);
-    const tone = number === null ? undefined : number > 0 ? 'up' : number < 0 ? 'down' : undefined;
+    if (number === null) {
+      const text = value === undefined || value === null ? '' : String(value);
+      if (text) list.push({ label: String(label), text, tone: undefined });
+      return;
+    }
+    if (number === 0) return;
     list.push({
       label: String(label),
-      text: number === null ? String(value === undefined ? '—' : value) : fmtDelta(number),
-      tone,
+      text: `${fmtDelta(number)}${suffix}`,
+      tone: number > 0 ? 'up' : 'down',
     });
   };
 
-  const typeLabels = {
-    cultivation: '修为',
-    spirit_stone: '灵石',
-    item: '物品',
-    item_loss: '失去',
-    karma: '因果',
-    hp_pct: '气血',
-    mp_pct: '灵力',
-    attr: '属性',
-    dao_heart: '道心',
-    status: '状态',
-    favor: '好感',
-    technique: '功法',
-    flag: '因果标记',
-    buff: '增益',
-    contribution: '贡献',
-    time: '耗时',
-    time_days: '耗时',
+  const pushText = (label, text, tone) => {
+    if (!label || text === undefined || text === null || text === '') return;
+    list.push({ label: String(label), text: String(text), tone });
   };
 
-  const consume = (item) => {
-    if (item === null || item === undefined) return;
-    if (typeof item === 'string' || typeof item === 'number') {
-      list.push({ label: '所得', text: String(item), tone: undefined });
-      return;
+  /** 处理 {type, key, value} 形态 */
+  const consumeTyped = (node) => {
+    const type = String(pick(node, 'type') || '');
+    const base = TYPE_LABELS[type] || labelOf(type, null);
+    const rawKey = pick(node, 'key', 'item_id', 'tech_id', 'npc_id', 'status');
+    const amount = pick(node, 'value', 'delta', 'amount', 'qty');
+
+    if (type === 'attr') {
+      pushNum(labelOf(rawKey, ATTR_LABELS) || '属性', amount);
+      return true;
     }
-    if (Array.isArray(item)) {
-      item.forEach(consume);
-      return;
+    if (type === 'status') {
+      pushText('状态', labelOf(rawKey, STATUS_LABELS));
+      return true;
     }
-    const label = pick(item, 'label', 'name', 'text', 'desc');
-    const value = pick(item, 'value', 'delta', 'amount', 'qty');
-    if (label !== undefined) {
-      push(label, value === undefined ? pick(item, 'result', 'effect') : value);
-      return;
+    if (type === 'item' || type === 'item_loss') {
+      const name = String(rawKey || '物品');
+      pushText(`${type === 'item' ? '所得' : '失去'}·${name}`,
+        amount === undefined || amount === null ? '' : `×${fmt(amount)}`,
+        type === 'item' ? 'up' : 'down');
+      return true;
     }
-    const type = pick(item, 'type');
-    if (type) {
-      const name = pick(item, 'key', 'item_id', 'tech_id', 'npc_id') || '';
-      const value2 = pick(item, 'value', 'qty', 'duration_days');
-      push(`${typeLabels[type] || type}${name ? `·${name}` : ''}`, value2);
-      return;
+    if (type === 'technique') {
+      pushText('习得功法', String(rawKey || ''));
+      return true;
     }
-    Object.keys(item).forEach((key) => {
-      const value3 = item[key];
-      if (value3 && typeof value3 === 'object') {
-        push(key, pick(value3, 'value', 'delta', 'amount'));
-      } else {
-        push(key, value3);
+    if (type === 'flag') return true; // 内部标记，不展示
+    if (base) {
+      pushNum(base, amount);
+      return true;
+    }
+    return false;
+  };
+
+  /** 处理 EffectOutcome 风格的整个字典 */
+  const consumeDict = (data) => {
+    Object.keys(data).forEach((key) => {
+      if (INTERNAL_KEYS.has(key)) return;
+      const value = data[key];
+
+      if (key === 'attr') {
+        pairsOf(value).forEach(([attrKey, delta]) => {
+          const label = labelOf(attrKey === null ? pick(delta || {}, 'key') : attrKey, ATTR_LABELS);
+          pushNum(label, attrKey === null ? pick(delta || {}, 'value', 'delta') : delta);
+        });
+        return;
       }
+      if (key === 'status' || key === 'statuses') {
+        pairsOf(value).forEach(([, item]) => {
+          const raw = typeof item === 'string' ? item : pick(item || {}, 'key', 'status');
+          pushText('状态', labelOf(raw, STATUS_LABELS));
+        });
+        return;
+      }
+      if (key === 'items_gained' || key === 'items_lost' || key === 'item' || key === 'item_loss') {
+        const gained = key === 'items_gained' || key === 'item';
+        pairsOf(value).forEach(([itemId, qty]) => {
+          const name = itemId === null ? pick(qty || {}, 'item_id', 'name') : itemId;
+          const count = itemId === null ? pick(qty || {}, 'qty', 'count') : qty;
+          pushText(`${gained ? '所得' : '失去'}·${name || '物品'}`,
+            count === undefined || count === null ? '' : `×${fmt(count)}`,
+            gained ? 'up' : 'down');
+        });
+        return;
+      }
+      if (key === 'techniques' || key === 'technique') {
+        pairsOf(value).forEach(([, techId]) => {
+          const id = typeof techId === 'string' ? techId : pick(techId || {}, 'tech_id', 'name');
+          pushText('习得功法', String(id || ''));
+        });
+        return;
+      }
+      if (key === 'favors' || key === 'favor') {
+        pairsOf(value).forEach(([npcId, delta]) => {
+          pushNum(`好感·${npcId === null ? pick(delta || {}, 'npc_id') : npcId}`,
+            npcId === null ? pick(delta || {}, 'value') : delta);
+        });
+        return;
+      }
+      if (key === 'buffs' || key === 'buff') {
+        pairsOf(value).forEach(([, buff]) => {
+          const amount = num(pick(buff || {}, 'value'), null);
+          const days = num(pick(buff || {}, 'duration_days'), null);
+          const parts = [];
+          if (amount !== null && amount !== 0) parts.push(fmtDelta(amount));
+          if (days) parts.push(`${fmt(days)} 日`);
+          pushText('增益', parts.join(' · '), 'up');
+        });
+        return;
+      }
+      if (key === 'hp_pct' || key === 'mp_pct') {
+        pushNum(key === 'hp_pct' ? '气血' : '灵力', value, '%');
+        return;
+      }
+      if (key === 'time' || key === 'time_days' || key === 'time_cost_days') {
+        pushText('耗时', `${fmt(value)} 日`, 'down');
+        return;
+      }
+      const base = TYPE_LABELS[key];
+      if (base) {
+        pushNum(base, value);
+        return;
+      }
+      // 未知键：中文自定义键原样展示，英文内部键不露出
+      if (!isInternalKey(key)) pushNum(key, value);
     });
+  };
+
+  const consume = (node) => {
+    if (node === null || node === undefined) return;
+    if (Array.isArray(node)) {
+      node.forEach(consume);
+      return;
+    }
+    if (typeof node !== 'object') {
+      pushText('所得', node, 'up');
+      return;
+    }
+    if (pick(node, 'type')) {
+      consumeTyped(node);
+      return;
+    }
+    const direct = pick(node, 'label', 'text', 'name');
+    if (direct !== undefined && !pick(node, 'key')) {
+      pushNum(direct, pick(node, 'value', 'delta', 'amount', 'qty'));
+      return;
+    }
+    consumeDict(node);
   };
 
   consume(effects);
   return list;
 }
 
-/** 渲染效果清单 */
-export function renderDeltas(container, effects) {
+/** 渲染已译好的效果行（服务端 effect_lines 直接走这里） */
+export function renderDeltaLines(container, lines) {
   if (!container) return;
   clear(container);
-  const lines = effectLines(effects);
-  if (!lines.length) {
+  const rows = arr(lines).filter((line) => line && (line.label !== undefined || line.text !== undefined));
+  if (!rows.length) {
     append(container, el('li', null, [el('span', { class: 'muted', text: '无增无减' })]));
     return;
   }
-  lines.forEach((line) => {
+  rows.forEach((line) => {
+    const tone = line.tone === 'up' ? 'up' : line.tone === 'down' ? 'down' : '';
     container.appendChild(el('li', null, [
-      el('span', { text: line.label }),
-      el('b', { class: line.tone === 'up' ? 'up' : line.tone === 'down' ? 'down' : '', text: line.text }),
+      el('span', { text: String(line.label === undefined ? '' : line.label) }),
+      el('b', { class: tone, text: String(line.text === undefined || line.text === null ? '—' : line.text) }),
     ]));
   });
+}
+
+/** 渲染效果清单 */
+export function renderDeltas(container, effects) {
+  renderDeltaLines(container, effectLines(effects));
 }
 
 /** 取状态里的「待决事件」/「战斗」，用于浮层同步 */

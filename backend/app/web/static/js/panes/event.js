@@ -8,11 +8,26 @@
 import { api } from '../core/api.js';
 import { store, pick, num, arr } from '../core/state.js';
 import {
-  qs, el, fill, fmt, fmtDelta, toast, toastError, riskTag, openLayer, closeLayer, withBusy,
+  qs, el, fill, fmt, toast, toastError, riskTag, openLayer, closeLayer, isLayerOpen, withBusy,
 } from '../core/ui.js';
-import { refreshAndSync, renderDeltas } from '../core/actions.js';
+import { refreshAndSync, renderDeltas, renderDeltaLines } from '../core/actions.js';
 
-const ui = { pending: null, chosen: false, result: null, instanceId: null };
+const ui = {
+  pending: null,
+  chosen: false,
+  result: null,
+  instanceId: null,
+  dismissedId: null,
+  finishing: false,
+};
+
+/** 取事件实例 id（不同接口字段名不同，统一成一个字符串键） */
+function instanceKey(data) {
+  if (!data) return '';
+  const ev = pick(data, 'event', 'detail', 'payload') || data;
+  const raw = pick(data, 'instance_id', 'instanceId') ?? pick(ev, 'instance_id');
+  return raw === undefined || raw === null ? '' : String(raw);
+}
 
 function currentEvent() {
   const pending = ui.pending || store.view.pendingEvent;
@@ -84,6 +99,25 @@ function renderChoices(eventData) {
   }));
 }
 
+/**
+ * 绑定「关闭 / 继续」。
+ *
+ * 事件层不是路由（router.ROUTES 里没有 event），外壳只会调 open()，
+ * 所以这里必须在 open() 里绑定一次；只在 enter() 里绑会导致按钮永久失联。
+ */
+function bindControls(root = document) {
+  const closeBtn = qs('#event-close', root);
+  if (closeBtn && !closeBtn.dataset.bound) {
+    closeBtn.dataset.bound = '1';
+    closeBtn.addEventListener('click', () => dismiss());
+  }
+  const cont = qs('#event-continue', root);
+  if (cont && !cont.dataset.bound) {
+    cont.dataset.bound = '1';
+    cont.addEventListener('click', () => finish());
+  }
+}
+
 export function open(eventData) {
   const event = eventData ? currentEventFrom(eventData) : currentEvent();
   if (!event) {
@@ -94,6 +128,8 @@ export function open(eventData) {
   ui.instanceId = event.instanceId;
   ui.chosen = false;
   ui.result = null;
+  ui.finishing = false;
+  ui.dismissedId = null;
 
   const title = qs('#event-title');
   if (title) title.textContent = event.title;
@@ -116,6 +152,7 @@ export function open(eventData) {
 
   if (event.choices.length) setResultVisible(false, true);
   renderChoices(event);
+  bindControls();
   openLayer('layer-event');
 }
 
@@ -153,9 +190,14 @@ async function choose(optionId, button) {
           : ok === false ? '所求未成' : ok === true ? '如你所愿' : '此局已定';
       }
 
-      const effects = pick(result, 'effects', 'applied', 'deltas', 'changes')
+      // 展示优先级：服务端译好的中文行 → deltas.effects → 原始 effects
+      // （deltas 扁平字典里混着 success/chance_bp，直接渲染会把内部键名抛给玩家）
+      const lines = arr(pick(result, 'effect_lines', 'effectLines', 'delta_lines'));
+      const effects = pick(result, 'effects', 'deltas.effects', 'applied', 'changes')
         || (ok === false ? pick(result, 'fail_effects') : pick(result, 'success_effects'));
-      renderDeltas(qs('#event-result-deltas'), effects);
+      const deltaBox = qs('#event-result-deltas');
+      if (lines.length) renderDeltaLines(deltaBox, lines);
+      else renderDeltas(deltaBox, effects);
 
       const time = num(pick(result, 'time_cost_days', 'time_days', 'days'), null);
       const timeNode = qs('#event-result-time');
@@ -183,18 +225,64 @@ async function choose(optionId, button) {
   }, { label: '推演…' });
 }
 
-async function finish() {
-  closeLayer('layer-event');
+/**
+ * 收起此页（× / Esc）。
+ *
+ * 没结算就只是「暂时收起」：服务端仍留着待决事件，外壳会亮出「续」入口把人请回来；
+ * 已结算则刷新 /state，事件在存档里真正消失。
+ */
+export function dismiss() {
+  const settled = ui.chosen;
+  const instanceId = instanceKey(ui.pending || store.view.pendingEvent);
+  if (isLayerOpen('layer-event')) closeLayer('layer-event');
   ui.pending = null;
   ui.chosen = false;
-  await refreshAndSync();
+  ui.result = null;
+  ui.dismissedId = settled ? null : (instanceId || null);
+
+  if (settled) {
+    refreshAndSync();
+    return;
+  }
+  // 「续」入口由外壳按状态渲染，这里只通知它同步一次
+  document.dispatchEvent(new CustomEvent('game:sync'));
+}
+
+/** 此实例是否被手动收起过（外壳据此不再强行弹回） */
+export function isDismissed(pending) {
+  if (ui.dismissedId === null) return false;
+  return instanceKey(pending) === ui.dismissedId;
+}
+
+async function finish() {
+  if (ui.finishing) return;
+  ui.finishing = true;
+  try {
+    if (!ui.chosen) {
+      dismiss();
+      return;
+    }
+    closeLayer('layer-event');
+    ui.pending = null;
+    ui.chosen = false;
+    ui.result = null;
+    ui.dismissedId = null;
+    await refreshAndSync();
+  } finally {
+    ui.finishing = false;
+  }
 }
 
 function handleKey(event) {
-  if (!qs('#layer-event') || qs('#layer-event').hidden) return false;
+  if (!isLayerOpen('layer-event')) return false;
   if (event.target && /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return false;
 
   const key = event.key;
+  if (key === 'Escape' || key === 'Esc') {
+    event.preventDefault();
+    dismiss();
+    return true;
+  }
   if (key === ' ' || key === 'Spacebar' || key === 'Enter') {
     if (ui.chosen || !ui.result) {
       const cont = qs('#event-continue');
@@ -224,14 +312,14 @@ export default {
 
   open,
 
+  dismiss,
+
+  isDismissed,
+
   handleKey,
 
-  async enter(root) {
-    const cont = qs('#event-continue', root);
-    if (cont && !cont.dataset.bound) {
-      cont.dataset.bound = '1';
-      cont.addEventListener('click', () => finish());
-    }
+  enter(root) {
+    bindControls(root);
     const pending = store.view.pendingEvent;
     if (pending) open(pending);
   },

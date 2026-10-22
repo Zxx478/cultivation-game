@@ -762,6 +762,13 @@ table {
   pointer-events: none;
 }
 
+/* 结算中占位：事件选项是两列 grid，占位文字要跨满整行，否则会被挤成竖排 */
+.choice .btn__busy {
+  grid-column: 1 / -1;
+  color: var(--text-3);
+  letter-spacing: 0.12em;
+}
+
 .iconbtn {
   display: inline-flex;
   align-items: center;
@@ -2160,6 +2167,42 @@ table {
   color: var(--gold);
 }
 
+/* ---------- 「续」入口（事件被手动收起后） ---------- */
+.resume {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-4);
+  z-index: var(--z-toast);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--gold);
+  color: #17130c;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.resume b {
+  font-weight: 600;
+}
+
+.resume__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.resume[hidden] {
+  display: none;
+}
+
 /* ---------- 浮层通用 ---------- */
 .scrim {
   position: fixed;
@@ -2962,6 +3005,10 @@ table {
     right: var(--sp-3);
     bottom: calc(var(--tabbar-h) + var(--sp-3));
     width: auto;
+  }
+
+  .resume {
+    bottom: calc(var(--tabbar-h) + var(--sp-3));
   }
 
   /* 弹窗全屏化 */

@@ -293,6 +293,10 @@ export function toastError(error, options = {}) {
 
 /**
  * 让按钮进入「结算中…」，完成后恢复。
+ *
+ * 注意：按钮里可能是有结构的子节点（如事件选项的序号 + 文案 + 标签），
+ * 所以不能把 textContent 存成字符串再写回——那会把结构压成一串纯文本。
+ * 这里改为「把原节点摘下来，结算完再挂回去」。
  * @param {HTMLButtonElement} button
  * @param {() => Promise<*>} task
  * @param {{label?:string, group?:HTMLElement}} options
@@ -307,19 +311,19 @@ export async function withBusy(button, task, options = {}) {
 
   const snapshot = siblings.map((node) => ({
     node,
-    text: node.dataset.labelSnapshot === undefined ? node.textContent : node.dataset.labelSnapshot,
+    children: Array.from(node.childNodes),
     disabled: node.disabled,
     ariaDisabled: node.getAttribute('aria-disabled'),
   }));
 
   siblings.forEach((node) => {
-    if (!node.dataset.labelSnapshot) node.dataset.labelSnapshot = node.textContent;
     node.disabled = true;
     node.setAttribute('aria-disabled', 'true');
   });
   if (button) {
     button.classList.add('is-busy');
-    button.textContent = label;
+    button.textContent = '';
+    button.appendChild(el('span', { class: 'btn__busy', text: label }));
   }
 
   try {
@@ -329,8 +333,8 @@ export async function withBusy(button, task, options = {}) {
       item.node.disabled = item.disabled;
       if (item.ariaDisabled === null) item.node.removeAttribute('aria-disabled');
       else item.node.setAttribute('aria-disabled', item.ariaDisabled);
-      item.node.textContent = item.text;
-      delete item.node.dataset.labelSnapshot;
+      item.node.textContent = '';
+      item.children.forEach((child) => item.node.appendChild(child));
     });
     if (button) button.classList.remove('is-busy');
   }

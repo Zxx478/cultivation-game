@@ -136,21 +136,58 @@ function renderLogRail() {
    浮层同步
    ============================================================ */
 
-function syncOverlays() {
-  if (!store.hasCharacter) return;
+/** 「一桩因果未了」的续入入口：玩家手动收起事件层后，仍能回到那桩事 */
+function syncResumeChip() {
   const view = store.view;
-
-  if (view.pendingEvent && !isLayerOpen('layer-event')) {
-    const root = qs('[data-pane="event"]');
-    if (root) eventPane.open(view.pendingEvent);
+  const show = Boolean(store.hasCharacter && view.pendingEvent && !isLayerOpen('layer-event'));
+  let chip = document.getElementById('event-resume');
+  if (!show) {
+    if (chip) chip.hidden = true;
     return;
   }
-  if (!view.pendingEvent && isLayerOpen('layer-event')) {
+  if (!chip) {
+    chip = el('button', {
+      id: 'event-resume',
+      class: 'resume',
+      type: 'button',
+      onclick: () => {
+        const root = qs('[data-pane="event"]');
+        if (root) eventPane.open(store.view.pendingEvent);
+      },
+    }, [
+      el('span', { class: 'resume__dot', 'aria-hidden': 'true' }),
+      el('span', { text: '一桩因果未了' }),
+      el('b', { text: '继续' }),
+    ]);
+    document.body.appendChild(chip);
+  }
+  chip.hidden = false;
+}
+
+function syncOverlays() {
+  if (!store.hasCharacter) {
+    if (isLayerOpen('layer-event')) closeLayer('layer-event');
+    syncResumeChip();
+    return;
+  }
+  const view = store.view;
+
+  if (view.pendingEvent) {
+    // 玩家手动收起过的同一桩事不再强行弹回，改用「续」入口
+    if (!isLayerOpen('layer-event') && !eventPane.isDismissed(view.pendingEvent)) {
+      const root = qs('[data-pane="event"]');
+      if (root) eventPane.open(view.pendingEvent);
+    }
+    syncResumeChip();
+    return;
+  }
+  if (isLayerOpen('layer-event')) {
     // 事件已在别处结算（如读档），收起旧弹窗
     closeLayer('layer-event');
   }
+  syncResumeChip();
 
-  if (view.combatActive && !isLayerOpen('layer-event') && !isLayerOpen('layer-combat')) {
+  if (view.combatActive && !isLayerOpen('layer-combat')) {
     const root = qs('[data-pane="combat"]');
     if (root) combatPane.open(root);
   }
@@ -227,11 +264,17 @@ function bindChrome() {
     if (root) breakthroughPane.open(root);
   });
 
+  document.addEventListener('layer:open', (event) => {
+    if (event.detail && event.detail.id === 'layer-event') syncResumeChip();
+  });
+
   document.addEventListener('layer:close', (event) => {
-    if (event.detail && event.detail.id === 'layer-more') {
+    const id = event.detail && event.detail.id;
+    if (id === 'layer-more') {
       const scrim = qs('#scrim');
       if (scrim) scrim.hidden = true;
     }
+    if (id === 'layer-event') syncResumeChip();
   });
 
   apiEvents.onConflict = () => {
@@ -258,7 +301,7 @@ function bindKeyboard() {
         return;
       }
       if (isLayerOpen('layer-event')) {
-        closeLayer('layer-event');
+        eventPane.dismiss();
         return;
       }
       if (isLayerOpen('layer-breakthrough')) {
