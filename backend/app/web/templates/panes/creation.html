@@ -1,0 +1,107 @@
+<section class="pane pane--creation" data-pane="creation" id="pane-creation" hidden aria-labelledby="creation-title">
+  <header class="pane__head">
+    <a class="link" href="#/home">← 返回首页</a>
+    <p class="pane__kicker">序 · 立身</p>
+    <h2 class="pane__title" id="creation-title">掷骨定命</h2>
+    <p class="pane__sub">先掷一副骨血，再分五点先天。此身既定，便由你去争。</p>
+    <p class="hint" id="creation-restart" hidden>你将重开一世：当前角色会转为非活动，旧进度仍留在自动存档与手动槽中。</p>
+  </header>
+
+  <div class="pane__body">
+    <form class="creation" id="creation-form" novalidate>
+      <div class="creation__step" data-step="1">
+        <div class="card card--roll">
+          <header class="card__head">
+            <h3 class="card__title">骨血</h3>
+            <button class="btn btn--ghost btn--sm" type="button" id="reroll">重掷（<span id="reroll-left">—</span>）</button>
+          </header>
+          <div class="card__body">
+            <dl class="rollgrid">
+              <div class="rollgrid__item"><dt>体质</dt><dd id="roll-physique">—</dd><p class="muted" id="roll-physique-desc"></p></div>
+              <div class="rollgrid__item"><dt>资质</dt><dd id="roll-talent">—</dd><p class="muted">一至十品，越高修行越快。</p></div>
+              <div class="rollgrid__item"><dt>性格</dt><dd id="roll-personality">—</dd><p class="muted" id="roll-personality-desc"></p></div>
+              <div class="rollgrid__item"><dt>悟性</dt><dd id="roll-wis">—</dd><p class="muted">天授，不可改；决定修为增速。</p></div>
+            </dl>
+            <p class="hint" id="roll-hint">重掷至多三次，第四次天不予。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <header class="card__head"><h3 class="card__title">名姓与形貌</h3></header>
+          <div class="card__body">
+            <div class="field">
+              <label class="field__label" for="f-name">道号</label>
+              <input class="input" id="f-name" name="name" type="text" maxlength="16" autocomplete="off" required placeholder="一至十六字">
+              <p class="field__error" id="f-name-error" hidden></p>
+            </div>
+            <fieldset class="field">
+              <legend class="field__label">性别</legend>
+              <div class="segmented" id="f-gender">
+                <label class="segmented__item"><input type="radio" name="gender" value="male" checked><span>男</span></label>
+                <label class="segmented__item"><input type="radio" name="gender" value="female"><span>女</span></label>
+                <label class="segmented__item"><input type="radio" name="gender" value="unknown"><span>其他</span></label>
+              </div>
+            </fieldset>
+            <div class="field">
+              <label class="field__label" for="f-personality">性格</label>
+              <select class="input" id="f-personality" name="personality"></select>
+              <p class="field__hint">性格只左右事件选项的判定，不改属性。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card--points">
+          <header class="card__head">
+            <h3 class="card__title">五点先天</h3>
+            <p class="points__left">剩余 <b id="points-left">5</b> 点</p>
+          </header>
+          <div class="card__body">
+            <ul class="points" id="points-list">
+              <li class="points__row" data-key="str"><span class="points__name">力量</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="力量减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="力量加一点">+</button></span></li>
+              <li class="points__row" data-key="con"><span class="points__name">体魄</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="体魄减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="体魄加一点">+</button></span></li>
+              <li class="points__row" data-key="spr"><span class="points__name">灵力</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="灵力减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="灵力加一点">+</button></span></li>
+              <li class="points__row" data-key="sen"><span class="points__name">神识</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="神识减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="神识加一点">+</button></span></li>
+              <li class="points__row" data-key="bon"><span class="points__name">根骨</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="根骨减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="根骨加一点">+</button></span></li>
+              <li class="points__row" data-key="wis"><span class="points__name">悟性</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="悟性减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="悟性加一点">+</button></span></li>
+              <li class="points__row" data-key="agi"><span class="points__name">身法</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="身法减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="身法加一点">+</button></span></li>
+              <li class="points__row" data-key="dao_heart"><span class="points__name">道心</span><span class="points__base" data-base>—</span><span class="points__ctrl"><button class="stepper" type="button" data-step="-1" aria-label="道心减一点">−</button><output class="points__val" data-val>0</output><button class="stepper" type="button" data-step="1" aria-label="道心加一点">+</button></span></li>
+            </ul>
+            <p class="hint">五点须尽数分完，单项至多三点；未分完者不得立身。</p>
+          </div>
+        </div>
+
+        <div class="creation__foot">
+          <button class="btn btn--primary btn--lg" type="button" id="creation-next">下一步</button>
+        </div>
+      </div>
+
+      <div class="creation__step" data-step="2" hidden>
+        <div class="card">
+          <header class="card__head"><h3 class="card__title">身前身后</h3></header>
+          <div class="card__body">
+            <dl class="summary" id="creation-summary"></dl>
+          </div>
+        </div>
+        <div class="card card--paths">
+          <header class="card__head"><h3 class="card__title">此后有路</h3></header>
+          <div class="card__body">
+            <p class="prose">你一介孤童，尚在断槐村。往后三百六十日为一年，寿元一尽便是枯骨。</p>
+            <ul class="paths">
+              <li class="paths__item"><b>锻血九炼</b><span>闭门苦修，先把自己炼到极处；此境无门无派，只以修为论生死。</span></li>
+              <li class="paths__item"><b>宗门</b><span>辟府之后，世道崩乱，六宗开山门收人。入宗需过其试，得方向树与独门功法，贡献可换物。</span></li>
+              <li class="paths__item"><b>方向</b><span>剑、法、丹、阵、体五系，各有三层节点，以贡献逐层点亮；适性相合者，修行更快。</span></li>
+              <li class="paths__item"><b>散修</b><span>不入山门，独行荒野。无方向加成，却多奇遇；可入禁地搏命，以贡献换命数。</span></li>
+            </ul>
+            <p class="hint">路在辟府之后方才显现，此刻不必急选。</p>
+          </div>
+        </div>
+        <div class="creation__foot">
+          <button class="btn btn--ghost" type="button" id="creation-back">上一步</button>
+          <button class="btn btn--primary btn--lg" type="button" id="creation-submit">以此身入世</button>
+        </div>
+      </div>
+
+      <p class="formerror" id="creation-error" hidden></p>
+    </form>
+  </div>
+</section>

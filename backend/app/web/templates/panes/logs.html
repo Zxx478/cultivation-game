@@ -1,0 +1,26 @@
+<section class="pane" data-pane="logs" id="pane-logs" hidden aria-labelledby="logs-title">
+  <header class="pane__head">
+    <p class="pane__kicker">十一 · 天机</p>
+    <h2 class="pane__title" id="logs-title">日志</h2>
+    <p class="pane__sub">所行之事，皆留痕迹。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">天机录</h3>
+        <p class="card__meta" id="logs-count">—</p>
+      </header>
+      <div class="card__body">
+        <div class="filters" role="group" aria-label="日志筛选">
+          <button class="chip is-active" type="button" data-kind="all">全部</button>
+          <button class="chip" type="button" data-kind="event">事件</button>
+          <button class="chip" type="button" data-kind="milestone">里程碑</button>
+          <button class="chip" type="button" data-kind="combat">战斗</button>
+          <button class="chip" type="button" data-kind="quest">任务</button>
+        </div>
+        <ol class="loglist loglist--full" id="logs-list"></ol>
+      </div>
+    </div>
+  </div>
+</section>

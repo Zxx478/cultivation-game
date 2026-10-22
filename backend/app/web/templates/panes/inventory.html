@@ -1,0 +1,34 @@
+<section class="pane" data-pane="inventory" id="pane-inventory" hidden aria-labelledby="inventory-title">
+  <header class="pane__head">
+    <p class="pane__kicker">五 · 行囊</p>
+    <h2 class="pane__title" id="inventory-title">背包</h2>
+    <p class="pane__sub" id="inventory-sub">—</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card">
+      <div class="card__body">
+        <div class="tabs" role="tablist" aria-label="背包分类">
+          <button class="tabs__item is-active" type="button" role="tab" aria-selected="true" data-tab="pill">丹药 <span data-tab-count="pill">0</span></button>
+          <button class="tabs__item" type="button" role="tab" aria-selected="false" data-tab="material">材料 <span data-tab-count="material">0</span></button>
+          <button class="tabs__item" type="button" role="tab" aria-selected="false" data-tab="equipment">装备 <span data-tab-count="equipment">0</span></button>
+          <button class="tabs__item" type="button" role="tab" aria-selected="false" data-tab="consumable">杂物 <span data-tab-count="consumable">0</span></button>
+        </div>
+        <ul class="cells" id="inv-cells" role="tabpanel" aria-label="格子"></ul>
+        <p class="hint" id="inv-hint">格子上限随储物戒变化。</p>
+      </div>
+    </div>
+
+    <div class="card" id="inv-detail" hidden>
+      <header class="card__head">
+        <h3 class="card__title" id="inv-detail-title">—</h3>
+        <p class="card__meta" id="inv-detail-meta">—</p>
+      </header>
+      <div class="card__body">
+        <p class="prose" id="inv-detail-desc"></p>
+        <dl class="statgrid statgrid--3" id="inv-detail-stats"></dl>
+        <div class="actionbar" id="inv-detail-actions"></div>
+      </div>
+    </div>
+  </div>
+</section>

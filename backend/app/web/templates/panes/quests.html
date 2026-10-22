@@ -1,0 +1,43 @@
+<section class="pane" data-pane="quests" id="pane-quests" hidden aria-labelledby="quests-title">
+  <header class="pane__head">
+    <p class="pane__kicker">六 · 主线</p>
+    <h2 class="pane__title" id="quests-title">任务</h2>
+    <p class="pane__sub">十九段因果，排到你死为止。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card">
+      <div class="card__body">
+        <div class="volgrid" id="volgrid">
+          <div class="volgrid__item">
+            <p class="volgrid__name">卷一 · 断槐</p>
+            <div class="bar bar--thin" data-bar="vol1"><span class="bar__track"><span class="bar__fill" data-fill></span></span></div>
+            <p class="volgrid__count" data-vol-count="1">—</p>
+          </div>
+          <div class="volgrid__item">
+            <p class="volgrid__name">卷二 · 乱世</p>
+            <div class="bar bar--thin" data-bar="vol2"><span class="bar__track"><span class="bar__fill" data-fill></span></span></div>
+            <p class="volgrid__count" data-vol-count="2">—</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">任务链</h3>
+        <p class="card__meta" id="quests-count">—</p>
+      </header>
+      <div class="card__body">
+        <div class="filters" role="group" aria-label="任务状态筛选">
+          <button class="chip is-active" type="button" data-status="all">全部</button>
+          <button class="chip" type="button" data-status="active">进行中</button>
+          <button class="chip" type="button" data-status="ready">可领取</button>
+          <button class="chip" type="button" data-status="completed">已完成</button>
+          <button class="chip" type="button" data-status="locked">未解锁</button>
+        </div>
+        <ol class="questlist" id="quest-list"></ol>
+      </div>
+    </div>
+  </div>
+</section>

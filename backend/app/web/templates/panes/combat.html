@@ -1,0 +1,60 @@
+<div class="layer layer--combat" id="layer-combat" data-pane="combat" hidden role="dialog" aria-modal="true" aria-labelledby="combat-title">
+  <div class="combat">
+    <h2 class="visually-hidden" id="combat-title">战斗</h2>
+    <header class="combat__head">
+      <section class="fighter fighter--player" aria-label="我方">
+        <p class="fighter__name" id="combat-player-name">—</p>
+        <div class="bar bar--hp" data-bar="php">
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <div class="bar bar--mp bar--thin" data-bar="pmp">
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <p class="fighter__status" id="combat-player-status"></p>
+      </section>
+      <div class="combat__turn">
+        <p class="combat__round" id="combat-round">—</p>
+        <p class="combat__hint" id="combat-hint"></p>
+      </div>
+      <section class="fighter fighter--enemy" aria-label="敌方">
+        <p class="fighter__name" id="combat-enemy-name">—</p>
+        <div class="bar bar--hp" data-bar="ehp">
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <div class="bar bar--mp bar--thin" data-bar="emp">
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <p class="fighter__status" id="combat-enemy-status"></p>
+      </section>
+    </header>
+
+    <div class="combat__stage" id="combat-stage">
+      <ol class="battlelog" id="combat-log" aria-live="polite"></ol>
+      <div class="float-layer" id="float-layer" aria-hidden="true"></div>
+    </div>
+
+    <div class="combat__result" id="combat-result" hidden>
+      <p class="combat__result-title" id="combat-result-title">—</p>
+      <ul class="deltalist" id="combat-result-deltas"></ul>
+      <button class="btn btn--primary" type="button" id="combat-continue">收势</button>
+    </div>
+
+    <div class="combat__picker" id="combat-picker" hidden>
+      <p class="combat__picker-title" id="combat-picker-title">—</p>
+      <ul class="picklist" id="combat-picker-list"></ul>
+      <button class="btn btn--ghost btn--sm" type="button" id="combat-picker-cancel">算了</button>
+    </div>
+
+    <footer class="combat__foot" id="combat-actions">
+      <button class="btn btn--primary cbattle" type="button" data-caction="attack">普攻</button>
+      <button class="btn btn--ghost cbattle" type="button" data-caction="skill">术法</button>
+      <button class="btn btn--ghost cbattle" type="button" data-caction="defend">防御</button>
+      <button class="btn btn--ghost cbattle" type="button" data-caction="item">道具</button>
+      <button class="btn btn--danger cbattle" type="button" data-caction="flee">逃跑</button>
+    </footer>
+  </div>
+</div>

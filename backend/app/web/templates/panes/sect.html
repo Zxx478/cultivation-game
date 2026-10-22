@@ -1,0 +1,82 @@
+<section class="pane" data-pane="sect" id="pane-sect" hidden aria-labelledby="sect-title">
+  <header class="pane__head">
+    <p class="pane__kicker">八 · 门径</p>
+    <h2 class="pane__title" id="sect-title">宗门</h2>
+    <p class="pane__sub" id="sect-sub">辟府之后，方可择门；一步踏错，再无退路。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card card--identity">
+      <div class="card__body">
+        <dl class="statgrid statgrid--4" id="sect-identity">
+          <div class="statgrid__item"><dt>身份</dt><dd data-id="role">—</dd></div>
+          <div class="statgrid__item"><dt>宗门</dt><dd data-id="sect">—</dd></div>
+          <div class="statgrid__item"><dt>贡献</dt><dd data-id="contribution">—</dd></div>
+          <div class="statgrid__item"><dt>方向</dt><dd data-id="direction">—</dd></div>
+        </dl>
+        <p class="hint" id="sect-identity-hint"></p>
+      </div>
+    </div>
+
+    <div class="card" id="sect-paths" hidden>
+      <header class="card__head">
+        <h3 class="card__title">乱世择门 · 七选一</h3>
+        <p class="card__meta">入宗不可退回散修</p>
+      </header>
+      <div class="card__body">
+        <ul class="paths-list" id="sect-path-list"></ul>
+      </div>
+    </div>
+
+    <div class="card" id="sect-sansxiu" hidden>
+      <header class="card__head">
+        <h3 class="card__title">散修独行</h3>
+        <p class="card__meta" id="sansxiu-wallet">—</p>
+      </header>
+      <div class="card__body">
+        <p class="prose">无方向加成，无宗门庇护。奇遇比旁人多一分，禁地只对你开。</p>
+        <div class="actionbar">
+          <button class="btn btn--primary" type="button" id="sansxiu-encounter">寻一场奇遇</button>
+          <button class="btn btn--ghost" type="button" id="sansxiu-convert">贡献转换入宗（半）</button>
+        </div>
+        <p class="hint" id="sansxiu-hint">奇遇产出散修独家功法；贡献转换只能一次，且不可回退。</p>
+      </div>
+    </div>
+
+    <div class="card" id="sect-direction" hidden>
+      <header class="card__head">
+        <h3 class="card__title">方向树</h3>
+        <p class="card__meta" id="direction-meta">—</p>
+      </header>
+      <div class="card__body">
+        <div class="tree" id="direction-tree"></div>
+        <p class="hint" id="direction-hint">节点按累计贡献点亮，未达者标出缺口。</p>
+      </div>
+    </div>
+
+    <div class="card" id="sect-quests" hidden>
+      <header class="card__head">
+        <h3 class="card__title">宗门事务</h3>
+        <p class="card__meta" id="sect-quest-meta">—</p>
+      </header>
+      <div class="card__body">
+        <div class="actionbar">
+          <button class="btn btn--ghost" type="button" data-sq="low">接初级任务</button>
+          <button class="btn btn--ghost" type="button" data-sq="mid">接中级任务</button>
+          <button class="btn btn--ghost" type="button" data-sq="high">接高级任务</button>
+        </div>
+        <div class="questcard" id="sect-quest-body"></div>
+      </div>
+    </div>
+
+    <div class="card" id="sect-exchange" hidden>
+      <header class="card__head">
+        <h3 class="card__title">贡献兑换</h3>
+        <p class="card__meta" id="exchange-meta">—</p>
+      </header>
+      <div class="card__body">
+        <ul class="exchangelist" id="exchange-list"></ul>
+      </div>
+    </div>
+  </div>
+</section>

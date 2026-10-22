@@ -1,0 +1,34 @@
+<section class="pane" data-pane="map" id="pane-map" hidden aria-labelledby="map-title">
+  <header class="pane__head">
+    <p class="pane__kicker">七 · 舆图</p>
+    <h2 class="pane__title" id="map-title">地图</h2>
+    <p class="pane__sub">二十处地界，处处要命。脚步所至，修为所依。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card card--here">
+      <header class="card__head">
+        <h3 class="card__title">身在何处</h3>
+        <p class="card__meta" id="map-current-meta">—</p>
+      </header>
+      <div class="card__body">
+        <p class="here__name" id="map-current">—</p>
+        <dl class="statgrid statgrid--3">
+          <div class="statgrid__item"><dt>环境系数</dt><dd id="map-current-env">—</dd></div>
+          <div class="statgrid__item"><dt>境界区间</dt><dd id="map-current-level">—</dd></div>
+          <div class="statgrid__item"><dt>特产</dt><dd id="map-current-mats">—</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">地界</h3>
+        <p class="card__meta" id="map-count">—</p>
+      </header>
+      <div class="card__body">
+        <ul class="mapgrid" id="map-grid"></ul>
+      </div>
+    </div>
+  </div>
+</section>

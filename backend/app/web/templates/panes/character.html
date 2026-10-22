@@ -1,0 +1,56 @@
+<section class="pane" data-pane="character" id="pane-character" hidden aria-labelledby="character-title">
+  <header class="pane__head">
+    <p class="pane__kicker">二 · 根骨</p>
+    <h2 class="pane__title" id="character-title">角色</h2>
+    <p class="pane__sub">属性皆有来历：一处堆高，另一处便要欠着。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card card--hero">
+      <div class="card__body">
+        <dl class="herogrid">
+          <div class="herogrid__item"><dt>境界</dt><dd id="char-realm">—</dd></div>
+          <div class="herogrid__item"><dt>战力</dt><dd id="char-cp">—</dd></div>
+          <div class="herogrid__item"><dt>根基</dt><dd id="char-foundation">—</dd></div>
+          <div class="herogrid__item"><dt>体质</dt><dd id="char-physique">—</dd></div>
+          <div class="herogrid__item"><dt>资质</dt><dd id="char-talent">—</dd></div>
+          <div class="herogrid__item"><dt>性格</dt><dd id="char-personality">—</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">十项基础</h3>
+        <p class="card__meta" id="char-points">—</p>
+      </header>
+      <div class="card__body card__body--flush">
+        <table class="table">
+          <caption class="visually-hidden">十项基础属性</caption>
+          <thead>
+            <tr><th scope="col">属性</th><th scope="col" class="num">数值</th><th scope="col" class="num">变化</th></tr>
+          </thead>
+          <tbody id="attr-basic"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <details class="card card--fold" id="derived-fold">
+      <summary class="card__head card__head--summary">
+        <h3 class="card__title">衍生十三项</h3>
+        <span class="card__meta">展开查看明细</span>
+      </summary>
+      <div class="card__body card__body--flush">
+        <table class="table">
+          <caption class="visually-hidden">衍生属性</caption>
+          <thead>
+            <tr><th scope="col">项</th><th scope="col" class="num">数值</th><th scope="col">来历</th></tr>
+          </thead>
+          <tbody id="attr-derived"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <p class="hint" id="character-hint">悬停属性名可看计算来历。</p>
+  </div>
+</section>

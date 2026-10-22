@@ -1,0 +1,179 @@
+/* ============================================================
+   《荒天纪》设计变量 · theme.css
+   双主题：夜色（默认）/ 宣纸。所有颜色/字号/间距只在此定义，
+   组件样式（main.css）只消费变量。
+   禁止：霓虹渐变、纯黑底、卡片圆角 > 8px、外链字体。
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* —— 墨色阶 —— */
+  --ink-0: #14120f;   /* 页面底 */
+  --ink-1: #1c1a17;   /* 卡片/面板 */
+  --ink-2: #242019;   /* 悬浮/输入 */
+  --ink-3: #2a241c;   /* 条槽 */
+
+  /* —— 纸色阶 —— */
+  --paper-0: #efe6d6; /* 主文字 */
+  --paper-1: #bfb3a0; /* 次要文字 */
+  --paper-2: #8a7e6c; /* 辅助/禁用 */
+
+  /* —— 三色 —— */
+  --cinnabar: #b23a2f;  /* 危险/寿元警戒/暴击 */
+  --cinnabar-lift: #c5463a;
+  --jade: #3e7c6b;      /* 灵力/成功/治疗 */
+  --jade-lift: #4a907c;
+  --gold: #c9a227;      /* 突破/稀有/强调 */
+  --gold-lift: #dbb53c;
+
+  /* —— 品阶（凡灵宝圣帝）—— */
+  --tier-fan: #8a7e6c;
+  --tier-ling: #3e7c6b;
+  --tier-bao: #3f6b94;
+  --tier-sheng: #6d4b8f;
+  --tier-di: #c9a227;
+
+  /* —— 语义映射 —— */
+  --bg: var(--ink-0);
+  --bg-deep: #100e0c;
+  --panel: var(--ink-1);
+  --panel-2: var(--ink-2);
+  --track: var(--ink-3);
+  --text: var(--paper-0);
+  --text-2: var(--paper-1);
+  --text-3: var(--paper-2);
+  --line: rgba(201, 162, 39, 0.18);
+  --line-strong: rgba(201, 162, 39, 0.35);
+  --line-soft: rgba(239, 230, 214, 0.08);
+  --accent: var(--gold);
+  --danger: var(--cinnabar);
+  --ok: var(--jade);
+  --scrim: rgba(8, 7, 6, 0.72);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.28);
+
+  /* —— 字体 —— */
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --font-sans: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-mono: "SFMono-Regular", "DejaVu Sans Mono", Consolas, monospace;
+
+  /* —— 字阶 —— */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 16px;
+  --fs-md: 18px;
+  --fs-lg: 22px;
+  --fs-xl: 28px;
+  --fs-2xl: 38px;
+  --lh-tight: 1.35;
+  --lh-base: 1.8;
+  --lh-prose: 2;
+
+  /* —— 间距 —— */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 44px;
+
+  /* —— 形状 —— */
+  --radius: 2px;
+  --radius-sm: 2px;
+  --radius-card: 4px;
+
+  /* —— 布局 —— */
+  --rail-nav-w: 224px;
+  --rail-log-w: 300px;
+  --main-max: 1180px;
+  --topbar-h: 60px;
+  --tabbar-h: 58px;
+
+  /* —— 动效 —— */
+  --dur-fast: 120ms;
+  --dur-base: 240ms;
+  --dur-bar: 400ms;
+  --dur-count: 600ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* —— 层级 —— */
+  --z-topbar: 30;
+  --z-tabbar: 40;
+  --z-scrim: 60;
+  --z-layer: 70;
+  --z-toast: 90;
+}
+
+/* ============================================================
+   宣纸主题：背景浅、文字深；三色加深以保证 ≥4.5:1 对比度。
+   ============================================================ */
+[data-theme="paper"] {
+  color-scheme: light;
+
+  --ink-0: #f3ede1;
+  --ink-1: #fbf6ec;
+  --ink-2: #f0e8d8;
+  --ink-3: #e4dac6;
+
+  --paper-0: #1c1a17;
+  --paper-1: #4a4235;
+  --paper-2: #6b6152;
+
+  --cinnabar: #8f2b22;
+  --cinnabar-lift: #a63528;
+  --jade: #2c6353;
+  --jade-lift: #357a66;
+  --gold: #8a6d12;
+  --gold-lift: #9d7d18;
+
+  --tier-fan: #6b6152;
+  --tier-ling: #2c6353;
+  --tier-bao: #2f5578;
+  --tier-sheng: #5b3d78;
+  --tier-di: #8a6d12;
+
+  --bg: var(--ink-0);
+  --bg-deep: #e9e1d2;
+  --panel: var(--ink-1);
+  --panel-2: var(--ink-2);
+  --track: var(--ink-3);
+  --text: var(--paper-0);
+  --text-2: var(--paper-1);
+  --text-3: var(--paper-2);
+  --line: rgba(28, 26, 23, 0.16);
+  --line-strong: rgba(28, 26, 23, 0.34);
+  --line-soft: rgba(28, 26, 23, 0.08);
+  --accent: var(--gold);
+  --danger: var(--cinnabar);
+  --ok: var(--jade);
+  --scrim: rgba(58, 50, 38, 0.42);
+  --shadow: 0 8px 28px rgba(60, 50, 34, 0.18);
+  --shadow-soft: 0 2px 8px rgba(60, 50, 34, 0.12);
+}
+
+/* 动效关闭（写进 data-motion 供 JS 与 CSS 共同遵守） */
+[data-motion="off"] * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.001ms;
+    --dur-base: 0.001ms;
+    --dur-bar: 0.001ms;
+    --dur-count: 0.001ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

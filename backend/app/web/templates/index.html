@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="night">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="荒天纪 · 一世换命的东方修真">
+  <title>荒天纪</title>
+  <link rel="stylesheet" href="/static/css/theme.css">
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+  <a class="skiplink" href="#main">跳到主内容</a>
+
+  <div class="boot" id="boot">
+    <div class="boot__inner">
+      <p class="boot__title">荒天纪</p>
+      <p class="boot__tip" id="boot-tip">正在推演天机…</p>
+      <div class="boot__error" id="boot-error" hidden>
+        <p class="boot__errtext" id="boot-errtext">天机晦涩，未能连接道基。</p>
+        <button class="btn btn--ghost" type="button" id="boot-retry">重新连接</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <a class="brand" href="#/main" title="返回洞府">荒天纪</a>
+      <dl class="topbar__stats">
+        <div class="stat"><dt>道号</dt><dd data-stat="name">—</dd></div>
+        <div class="stat"><dt>境界</dt><dd data-stat="realm">—</dd></div>
+        <div class="stat"><dt>年岁</dt><dd data-stat="year">—</dd></div>
+        <div class="stat"><dt>余寿</dt><dd data-stat="life">—</dd></div>
+        <div class="stat"><dt>灵石</dt><dd data-stat="stone">—</dd></div>
+      </dl>
+      <div class="topbar__tools">
+        <button class="btn btn--ghost btn--sm" type="button" id="theme-toggle" aria-pressed="false">宣纸</button>
+        <a class="btn btn--ghost btn--sm" href="#/saves">存档</a>
+        <button class="btn btn--ghost btn--sm" type="button" id="lograil-toggle" aria-expanded="false" aria-controls="lograil">天机</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="rail rail--nav" id="navrail">
+        <div class="charcard">
+          <p class="charcard__name" data-cc="name">—</p>
+          <p class="charcard__realm" data-cc="realm">—</p>
+          <div class="bar bar--exp" data-bar="exp">
+            <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+            <span class="bar__value" data-value>—</span>
+          </div>
+          <ul class="charcard__meta">
+            <li><span>气血</span><b data-cc="hp">—</b></li>
+            <li><span>灵力</span><b data-cc="mp">—</b></li>
+            <li><span>寿元</span><b data-cc="life">—</b></li>
+            <li><span>灵石</span><b data-cc="stone">—</b></li>
+            <li><span>区域</span><b data-cc="region">—</b></li>
+          </ul>
+        </div>
+        <nav class="nav" id="nav-list" aria-label="主要界面">
+          <a class="nav__item" data-nav="main" href="#/main">洞府</a>
+          <a class="nav__item" data-nav="character" href="#/character">角色</a>
+          <a class="nav__item" data-nav="cultivation" href="#/cultivation">修炼</a>
+          <a class="nav__item" data-nav="techniques" href="#/techniques">功法</a>
+          <a class="nav__item" data-nav="inventory" href="#/inventory">背包</a>
+          <a class="nav__item" data-nav="quests" href="#/quests">任务</a>
+          <a class="nav__item" data-nav="map" href="#/map">地图</a>
+          <a class="nav__item" data-nav="sect" href="#/sect">宗门</a>
+          <a class="nav__item" data-nav="forbidden" href="#/forbidden">禁地</a>
+          <button class="nav__item nav__item--action" data-nav="combat" type="button">战斗</button>
+          <a class="nav__item" data-nav="saves" href="#/saves">存档</a>
+          <a class="nav__item" data-nav="logs" href="#/logs">日志</a>
+        </nav>
+        <div class="rail__foot">
+          <button class="btn btn--ghost btn--sm btn--block" type="button" id="motion-toggle" aria-pressed="true">动效：开</button>
+        </div>
+      </aside>
+
+      <main class="main" id="main" tabindex="-1">
+        {% include "panes/home.html" %}
+        {% include "panes/creation.html" %}
+        {% include "panes/main.html" %}
+        {% include "panes/character.html" %}
+        {% include "panes/cultivation.html" %}
+        {% include "panes/techniques.html" %}
+        {% include "panes/inventory.html" %}
+        {% include "panes/quests.html" %}
+        {% include "panes/map.html" %}
+        {% include "panes/sect.html" %}
+        {% include "panes/forbidden.html" %}
+        {% include "panes/saves.html" %}
+        {% include "panes/logs.html" %}
+      </main>
+
+      <aside class="rail rail--log" id="lograil" aria-label="天机录">
+        <header class="rail__head">
+          <h2 class="rail__title">天机录</h2>
+          <button class="iconbtn" type="button" id="lograil-close" aria-label="收起天机录">×</button>
+        </header>
+        <ol class="loglist" id="log-list" aria-live="polite"></ol>
+        <footer class="rail__foot rail__foot--split">
+          <a class="link" href="#/logs">全部日志</a>
+          <span class="muted" id="log-count">0 条</span>
+        </footer>
+      </aside>
+    </div>
+
+    <nav class="tabbar" id="tabbar" aria-label="底部导航">
+      <a class="tab" data-tab="main" href="#/main"><span class="tab__glyph" aria-hidden="true">府</span>洞府</a>
+      <a class="tab" data-tab="cultivation" href="#/cultivation"><span class="tab__glyph" aria-hidden="true">炼</span>修炼</a>
+      <a class="tab" data-tab="inventory" href="#/inventory"><span class="tab__glyph" aria-hidden="true">囊</span>背包</a>
+      <a class="tab" data-tab="quests" href="#/quests"><span class="tab__glyph" aria-hidden="true">令</span>任务</a>
+      <button class="tab" type="button" id="tab-more"><span class="tab__glyph" aria-hidden="true">余</span>更多</button>
+    </nav>
+  </div>
+
+  {% include "panes/event.html" %}
+  {% include "panes/breakthrough.html" %}
+  {% include "panes/combat.html" %}
+
+  <div class="layer" id="layer-more" hidden role="dialog" aria-modal="true" aria-labelledby="more-title">
+    <div class="layer__panel layer__panel--sheet">
+      <header class="layer__head">
+        <h2 class="layer__title" id="more-title">更多界面</h2>
+        <button class="iconbtn" type="button" data-close="layer-more" aria-label="关闭">×</button>
+      </header>
+      <div class="layer__body">
+        <div class="moregrid">
+          <a class="moregrid__item" href="#/character" data-close="layer-more">角色</a>
+          <a class="moregrid__item" href="#/techniques" data-close="layer-more">功法</a>
+          <a class="moregrid__item" href="#/map" data-close="layer-more">地图</a>
+          <a class="moregrid__item" href="#/sect" data-close="layer-more">宗门</a>
+          <a class="moregrid__item" href="#/forbidden" data-close="layer-more">禁地</a>
+          <a class="moregrid__item" href="#/saves" data-close="layer-more">存档</a>
+          <a class="moregrid__item" href="#/logs" data-close="layer-more">日志</a>
+          <button class="moregrid__item" type="button" id="more-combat">战斗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <noscript>
+    <p class="noscript">《荒天纪》需要启用 JavaScript 方可修行。</p>
+  </noscript>
+  <script type="module" src="/static/js/core/app.js"></script>
+</body>
+</html>

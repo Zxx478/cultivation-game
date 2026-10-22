@@ -1,0 +1,70 @@
+<section class="pane" data-pane="techniques" id="pane-techniques" hidden aria-labelledby="techniques-title">
+  <header class="pane__head">
+    <p class="pane__kicker">四 · 功法</p>
+    <h2 class="pane__title" id="techniques-title">功法</h2>
+    <p class="pane__sub">心法一部，攻、防、辅各三。槽位有限，取舍即是道。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">已装备 · 一 + 三 + 三 + 三</h3>
+        <p class="card__meta" id="tech-equipped-count">—</p>
+      </header>
+      <div class="card__body">
+        <div class="equipgrid" id="equipgrid">
+          <button class="slot" type="button" data-slot="heart"><span class="slot__label">心法</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="atk1"><span class="slot__label">攻一</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="atk2"><span class="slot__label">攻二</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="atk3"><span class="slot__label">攻三</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="def1"><span class="slot__label">防一</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="def2"><span class="slot__label">防二</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="def3"><span class="slot__label">防三</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="sup1"><span class="slot__label">辅一</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="sup2"><span class="slot__label">辅二</span><span class="slot__name" data-slot-name>空</span></button>
+          <button class="slot" type="button" data-slot="sup3"><span class="slot__label">辅三</span><span class="slot__name" data-slot-name>空</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">功法库</h3>
+        <p class="card__meta" id="tech-count">—</p>
+      </header>
+      <div class="card__body">
+        <div class="filters" role="group" aria-label="品阶筛选">
+          <button class="chip is-active" type="button" data-tier="all">全部</button>
+          <button class="chip" type="button" data-tier="fan">凡</button>
+          <button class="chip" type="button" data-tier="ling">灵</button>
+          <button class="chip" type="button" data-tier="bao">宝</button>
+          <button class="chip" type="button" data-tier="sheng">圣</button>
+          <button class="chip" type="button" data-tier="di">帝</button>
+        </div>
+        <div class="filters" role="group" aria-label="学习状态筛选">
+          <button class="chip is-active" type="button" data-learned="all">全部</button>
+          <button class="chip" type="button" data-learned="yes">已学</button>
+          <button class="chip" type="button" data-learned="no">未学</button>
+        </div>
+        <ul class="techlist" id="tech-list"></ul>
+      </div>
+    </div>
+
+    <div class="card" id="tech-detail" hidden>
+      <header class="card__head">
+        <h3 class="card__title" id="tech-detail-title">—</h3>
+        <p class="card__meta" id="tech-detail-tier">—</p>
+      </header>
+      <div class="card__body">
+        <p class="prose" id="tech-detail-desc"></p>
+        <div class="bar bar--sense" data-bar="sense">
+          <span class="bar__label">参悟</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <dl class="statgrid statgrid--3" id="tech-detail-stats"></dl>
+        <div class="actionbar" id="tech-detail-actions"></div>
+      </div>
+    </div>
+  </div>
+</section>

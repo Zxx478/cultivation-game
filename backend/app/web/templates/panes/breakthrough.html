@@ -1,0 +1,38 @@
+<div class="layer layer--breakthrough" id="layer-breakthrough" data-pane="breakthrough" hidden role="dialog" aria-modal="true" aria-labelledby="bt-title">
+  <div class="layer__panel layer__panel--bt">
+    <header class="layer__head">
+      <p class="layer__kicker">冲关</p>
+      <h2 class="layer__title" id="bt-title">—</h2>
+      <button class="iconbtn" type="button" id="bt-close" aria-label="关闭">×</button>
+    </header>
+    <div class="layer__body">
+      <p class="btchain" id="bt-chain">—</p>
+      <div class="btsummary">
+        <p class="btsummary__label">最终成功率</p>
+        <p class="btsummary__value" id="bt-final">—</p>
+        <p class="btsummary__note" id="bt-final-note"></p>
+      </div>
+      <div class="card__body card__body--flush">
+        <table class="table table--tight">
+          <caption class="visually-hidden">成功率明细</caption>
+          <thead><tr><th scope="col">加成项</th><th scope="col" class="num">数值</th><th scope="col">说明</th></tr></thead>
+          <tbody id="bt-items"></tbody>
+        </table>
+      </div>
+      <div class="btpenalty">
+        <p class="btpenalty__title">失败之罚</p>
+        <ul class="penaltylist" id="bt-penalty"></ul>
+      </div>
+      <fieldset class="btprep">
+        <legend class="field__label">冲关准备（丹药）</legend>
+        <ul class="pilllist" id="bt-pills"></ul>
+        <p class="hint" id="bt-prep-hint">四项准备加成合计不超过三成。</p>
+      </fieldset>
+      <div class="btresult" id="bt-result" hidden></div>
+    </div>
+    <footer class="layer__foot">
+      <p class="hint" id="bt-block"></p>
+      <button class="btn btn--danger btn--lg" type="button" id="bt-start">开始突破</button>
+    </footer>
+  </div>
+</div>

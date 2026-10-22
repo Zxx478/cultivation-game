@@ -1,0 +1,90 @@
+<section class="pane pane--home" data-pane="home" id="pane-home" hidden aria-labelledby="home-title">
+  <div class="home">
+    <header class="home__hero">
+      <p class="home__kicker">文字模拟修仙 · 一世换命</p>
+      <h1 class="home__title" id="home-title">荒天纪</h1>
+      <p class="home__lede">
+        一介荒村孤童，靠体质、加点、宗门或独行，把自己推向大帝之位。<br>
+        十二境阶梯为骨，时间与寿元为刃——每点一次行动，世上便过去数日。
+      </p>
+      <div class="home__actions">
+        <button class="btn btn--primary btn--lg" type="button" id="home-start">开始游戏</button>
+        <button class="btn btn--ghost btn--lg" type="button" id="home-continue" hidden>继续修行</button>
+        <button class="btn btn--ghost" type="button" id="home-theme">宣纸</button>
+      </div>
+      <p class="home__hint" id="home-hint">尚未有修行记录；点击「开始游戏」进入创角。</p>
+    </header>
+
+    <div class="home__grid">
+      <div class="home__col">
+        <article class="home__card">
+          <h3 class="home__cardtitle">世界观</h3>
+          <p>
+            断槐村的老槐断了一半，另一半还活着。你是村里的孤童，先烧血，再谈仙。
+            世道将乱，六宗开山门，也有人选择不入山门、独行荒野。
+          </p>
+        </article>
+
+        <article class="home__card">
+          <h3 class="home__cardtitle">核心循环</h3>
+          <ul class="home__list">
+            <li><b>微循环</b>：选行动 → 耗时间 → 判定 → 得修为/资源 → 属性成长。</li>
+            <li><b>中循环</b>：境界圆满 → 筹备突破 → 成功进新境 → 解锁区域/功法/事件。</li>
+            <li><b>宏循环</b>：一世从锻血走到尽头，成帝、陨落或归隐，皆有结局。</li>
+          </ul>
+        </article>
+
+        <article class="home__card">
+          <h3 class="home__cardtitle">时间与寿元（随境界动态增长）</h3>
+          <p class="muted">1 年 = 360 日，1 月 = 30 日。行动耗时随大境提升而变长，越高境越接近“百年一闭关”。</p>
+          <table class="home__table" id="home-time-table">
+            <thead>
+              <tr><th>行动</th><th>基础</th><th>当前境界</th></tr>
+            </thead>
+            <tbody id="home-time-body">
+              <tr><td colspan="3" class="muted">载入中…</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="home__card">
+          <h3 class="home__cardtitle">三条路径</h3>
+          <ul class="home__list">
+            <li><b>宗门</b>：辟府后择门，得方向树、宗门任务与独门功法。</li>
+            <li><b>方向</b>：剑 / 法 / 丹 / 阵 / 体五系，各三层节点，以贡献点亮。</li>
+            <li><b>散修</b>：无门无派，无方向加成，靠奇遇与禁地补强度。</li>
+          </ul>
+        </article>
+      </div>
+
+      <aside class="home__col home__col--side">
+        <article class="home__card">
+          <h3 class="home__cardtitle">存档选择</h3>
+          <p class="muted">自动槽由系统在每次行动后书写；手动槽共三处，可读取、导出、导入。</p>
+          <ul class="home__saves" id="home-save-list"></ul>
+          <p class="muted" id="home-save-empty"></p>
+        </article>
+
+        <article class="home__card">
+          <h3 class="home__cardtitle">操作提示</h3>
+          <ul class="home__list">
+            <li>底部五Tab：洞府 / 修炼 / 背包 / 任务 / 更多。</li>
+            <li>事件弹窗可用 <code>1–4</code> 选择，<code>Esc</code> 关闭。</li>
+            <li>战斗中普攻/术法/防御/道具/逃跑；30 回合未分胜负则各自退开。</li>
+            <li>刷新页面会从服务端快照恢复，不会重掷随机。</li>
+          </ul>
+        </article>
+
+        <article class="home__card home__card--meta">
+          <h3 class="home__cardtitle">版本</h3>
+          <p class="muted" id="home-version">v1.5 · MVP（锻血—辟府）</p>
+        </article>
+      </aside>
+    </div>
+
+    <footer class="home__foot">
+      <span>《荒天纪》· 致敬向同人改编 · 非商业</span>
+      <span class="muted">服务端权威 · SQLite 存档 · 断网可玩</span>
+    </footer>
+  </div>
+</section>

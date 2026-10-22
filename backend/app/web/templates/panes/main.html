@@ -1,0 +1,93 @@
+<section class="pane" data-pane="main" id="pane-main" hidden aria-labelledby="main-title">
+  <header class="pane__head">
+    <p class="pane__kicker">一 · 洞府</p>
+    <h2 class="pane__title" id="main-title">洞府</h2>
+    <p class="pane__sub" id="main-sub">—</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card card--vitals">
+      <div class="card__body">
+        <div class="bar bar--exp" data-bar="exp">
+          <span class="bar__label">修为</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <div class="bar bar--hp" data-bar="hp">
+          <span class="bar__label">气血</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <div class="bar bar--mp" data-bar="mp">
+          <span class="bar__label">灵力</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <div class="bar bar--life" data-bar="life">
+          <span class="bar__label">寿元</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <dl class="statgrid">
+          <div class="statgrid__item"><dt>灵石</dt><dd data-vital="stone">—</dd></div>
+          <div class="statgrid__item"><dt>因果</dt><dd data-vital="karma">—</dd></div>
+          <div class="statgrid__item"><dt>道心</dt><dd data-vital="dao_heart">—</dd></div>
+          <div class="statgrid__item"><dt>根基</dt><dd data-vital="foundation">—</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card card--actions" id="action-card">
+      <header class="card__head">
+        <h3 class="card__title">今日行事</h3>
+        <p class="card__meta" id="action-region">—</p>
+      </header>
+      <div class="card__body">
+        <div class="actionbar" id="actionbar">
+          <button class="btn btn--primary action" type="button" data-action="seclusion">闭关</button>
+          <button class="btn btn--ghost action" type="button" data-action="adventure">历练</button>
+          <button class="btn btn--ghost action" type="button" data-action="gather">采药</button>
+          <button class="btn btn--ghost action" type="button" data-action="spar">切磋</button>
+          <button class="btn btn--ghost action" type="button" data-action="meditate">打坐</button>
+          <span class="actionbar__repeat">
+            <label class="visually-hidden" for="repeat-count">持续闭关次数</label>
+            <select class="input input--sm" id="repeat-count">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+            <button class="btn btn--ghost action" type="button" data-action="seclusion" data-repeat="1">持续闭关</button>
+          </span>
+        </div>
+        <p class="hint" id="action-hint">闭关一日三十天，寿元随之而去。慎重。</p>
+        <div class="actionbar actionbar--aux">
+          <button class="btn btn--danger" type="button" id="main-breakthrough" hidden>冲击下一境</button>
+          <a class="btn btn--ghost" href="#/map">前往他处</a>
+          <a class="btn btn--ghost" href="#/sect">身份与宗门</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="main-result" hidden>
+      <header class="card__head"><h3 class="card__title">结算</h3></header>
+      <div class="card__body" id="main-result-body"></div>
+    </div>
+
+    <div class="card" id="main-prologue" hidden>
+      <header class="card__head"><h3 class="card__title">序章</h3></header>
+      <div class="card__body">
+        <p class="prose" id="main-prologue-text"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">眼前之事</h3>
+      </header>
+      <div class="card__body">
+        <ul class="tasklist" id="main-questlist"></ul>
+      </div>
+    </div>
+  </div>
+</section>

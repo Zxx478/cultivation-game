@@ -1,0 +1,39 @@
+<section class="pane" data-pane="saves" id="pane-saves" hidden aria-labelledby="saves-title">
+  <header class="pane__head">
+    <p class="pane__kicker">十 · 存档</p>
+    <h2 class="pane__title" id="saves-title">存档</h2>
+    <p class="pane__sub">三处手动，一处自动。自动槽只由天机书写，你改不得。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">槽位</h3>
+        <p class="card__meta" id="saves-meta">—</p>
+      </header>
+      <div class="card__body">
+        <ul class="slotlist" id="save-slots"></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head"><h3 class="card__title">导出与导入</h3></header>
+      <div class="card__body">
+        <p class="prose">导出得到一段带校验的文本，可抄录带走；导入时四道校验任一不符即拒。</p>
+        <div class="field">
+          <label class="field__label" for="import-file">选择存档文件</label>
+          <input class="input" id="import-file" type="file" accept=".json,.txt,application/json">
+        </div>
+        <div class="field">
+          <label class="field__label" for="import-text">或直接粘贴</label>
+          <textarea class="input input--area" id="import-text" rows="5" spellcheck="false" placeholder="粘贴导出的存档文本"></textarea>
+        </div>
+        <div class="actionbar">
+          <button class="btn btn--primary" type="button" id="import-submit">导入存档</button>
+          <button class="btn btn--ghost" type="button" id="import-clear">清空</button>
+        </div>
+        <p class="hint" id="import-hint">导入失败不会落库，原存档不受影响。</p>
+      </div>
+    </div>
+  </div>
+</section>

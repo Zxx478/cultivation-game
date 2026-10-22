@@ -1,0 +1,68 @@
+<section class="pane" data-pane="cultivation" id="pane-cultivation" hidden aria-labelledby="cultivation-title">
+  <header class="pane__head">
+    <p class="pane__kicker">三 · 修炼</p>
+    <h2 class="pane__title" id="cultivation-title">修炼</h2>
+    <p class="pane__sub">闭门一日，世上三十日。修为是拿命换来的。</p>
+  </header>
+
+  <div class="pane__body">
+    <div class="card card--gain">
+      <div class="card__body">
+        <p class="gain__label">单次闭关</p>
+        <p class="gain__value" id="cult-gain">—</p>
+        <p class="gain__meta" id="cult-gain-meta">—</p>
+        <div class="actionbar">
+          <button class="btn btn--primary action" type="button" data-action="seclusion">闭关一次</button>
+          <span class="actionbar__repeat">
+            <label class="visually-hidden" for="cult-repeat">持续闭关次数</label>
+            <select class="input input--sm" id="cult-repeat">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+            <button class="btn btn--ghost action" type="button" data-action="seclusion" data-repeat="1">持续闭关</button>
+          </span>
+          <button class="btn btn--danger" type="button" id="cult-breakthrough" hidden>冲击下一境</button>
+        </div>
+        <p class="hint" id="cult-hint">中途遇事即止，余下次数作废。</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head">
+        <h3 class="card__title">修为增速 · 七层</h3>
+        <p class="card__meta" id="cult-rate-total">—</p>
+      </header>
+      <div class="card__body card__body--flush">
+        <table class="table table--tight">
+          <caption class="visually-hidden">修为增速分层明细</caption>
+          <thead>
+            <tr><th scope="col">层</th><th scope="col" class="num">系数</th><th scope="col">说明</th></tr>
+          </thead>
+          <tbody id="cult-rate-body">
+            <tr><td colspan="3" class="empty">—</td></tr>
+          </tbody>
+        </table>
+        <p class="hint hint--pad" id="cult-formula">增速 =（5 + 悟性 × 0.8）× 境界 × 功法 × 体质 × 环境 × 心境 × 状态。</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card__head"><h3 class="card__title">本境进程</h3></header>
+      <div class="card__body">
+        <div class="bar bar--exp" data-bar="exp2">
+          <span class="bar__label">本级</span>
+          <span class="bar__track"><span class="bar__fill" data-fill></span></span>
+          <span class="bar__value" data-value>—</span>
+        </div>
+        <dl class="statgrid statgrid--3">
+          <div class="statgrid__item"><dt>本境还需</dt><dd id="cult-remain-realm">—</dd></div>
+          <div class="statgrid__item"><dt>本级还需</dt><dd id="cult-remain-level">—</dd></div>
+          <div class="statgrid__item"><dt>余寿可闭关</dt><dd id="cult-remain-life">—</dd></div>
+        </dl>
+        <p class="hint">「还需次数」以当前增速与区域环境估算，实际以服务端结算为准。</p>
+      </div>
+    </div>
+  </div>
+</section>

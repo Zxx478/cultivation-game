@@ -1,0 +1,22 @@
+<div class="layer layer--event" id="layer-event" data-pane="event" hidden role="dialog" aria-modal="true" aria-labelledby="event-title">
+  <div class="layer__panel layer__panel--event">
+    <header class="layer__head">
+      <p class="layer__kicker" id="event-kicker">奇遇</p>
+      <h2 class="layer__title" id="event-title">—</h2>
+    </header>
+    <div class="layer__body">
+      <p class="eventbody" id="event-body"></p>
+      <ol class="choices" id="event-choices"></ol>
+      <div class="eventresult" id="event-result" hidden>
+        <p class="eventresult__title" id="event-result-title">—</p>
+        <ul class="deltalist" id="event-result-deltas"></ul>
+        <p class="hint" id="event-result-time"></p>
+      </div>
+      <p class="hint" id="event-hint">按 1–4 选择；Esc 收起，稍后再来。</p>
+    </div>
+    <footer class="layer__foot">
+      <span class="muted" id="event-footnote">此念一起，不可回头。</span>
+      <button class="btn btn--primary" type="button" id="event-continue" hidden>继续</button>
+    </footer>
+  </div>
+</div>
