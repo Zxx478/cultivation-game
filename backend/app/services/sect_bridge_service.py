@@ -570,13 +570,15 @@ def enter_forbidden(land_id: str) -> Dict[str, Any]:
 
 
 @atomic
-def complete_forbidden(char_id: int, land_id: str, attempt: int) -> Dict[str, Any]:
+def complete_forbidden(char_id: int, land_id: str, attempt: int,
+                       rng: Optional["RngService"] = None) -> Dict[str, Any]:
     """Boss 胜利后：调既有 Service 扣贡献/置首通/掉落，再发放到角色。"""
     char = CharacterRepository.require(char_id)
     try:
         result = ForbiddenLandService.enter(
             char_id, str(land_id), int(char["age_days"]),
-            int(char["realm_index"]), game_year(int(char["age_days"])))
+            int(char["realm_index"]), game_year(int(char["age_days"])),
+            rng=rng)
     except Exception as exc:
         raise _to_game_error(exc)
     granted: Dict[str, Any] = {}

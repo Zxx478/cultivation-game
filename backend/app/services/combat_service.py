@@ -170,7 +170,7 @@ def _after_victory(char_id: int, row: Mapping[str, Any], session: Mapping[str, A
         land_id = str(meta["extra"]["land_id"])
         try:
             result["forbidden"] = complete_forbidden(
-                char_id, land_id, int(meta["extra"].get("attempt", 1)))
+                char_id, land_id, int(meta["extra"].get("attempt", 1)), rng=rng)
         except Exception as exc:  # 结算失败不阻断主流程，记录待补
             result["forbidden_error"] = str(exc)
             LogRepository.add_event(char_id, "forbidden_error",

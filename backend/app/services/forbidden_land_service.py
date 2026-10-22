@@ -23,10 +23,10 @@
 from __future__ import annotations
 
 import json
-import random
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from ..config import load
+from ..core.rng import RngService
 from ..db import (
     ForbiddenLandLogRepository,
     ForbiddenLandProgressRepository,
@@ -59,11 +59,12 @@ class ForbiddenLandService:
         is_sansxiu: bool,
         sansxiu_bonus_rate: float,
         sansxiu_extra: List,
+        rng: RngService,
     ) -> List[dict]:
-        """按 drop_rate 抽取奖励，散修额外抽 sansxiu_extra。"""
+        """按 drop_rate 抽取奖励（使用角色 RNG，禁止标准库 random）。"""
         out = []
-        for r in rewards:
-            roll = random.random()
+        for index, r in enumerate(rewards):
+            roll = rng.random_float(stream=f"forbidden:reward:{index}")
             effective_rate = r.drop_rate
             if is_sansxiu:
                 # 散修的整体加成只作用于 first_clear
@@ -80,8 +81,9 @@ class ForbiddenLandService:
                 })
         # 散修额外 bonus
         if is_sansxiu:
-            for r in sansxiu_extra:
-                if random.random() < r.drop_rate:
+            for index, r in enumerate(sansxiu_extra):
+                roll = rng.random_float(stream=f"forbidden:extra:{index}")
+                if roll < r.drop_rate:
                     out.append({
                         "type": r.type,
                         "item_id": r.item_id,
@@ -99,8 +101,10 @@ class ForbiddenLandService:
         today_day: int,
         current_realm_seq: int,
         current_game_year: int,
+        rng: Optional[RngService] = None,
     ) -> dict:
         cfg = load()
+        rng = rng or RngService("forbidden:default", 0)
 
         # 1. 校验 land_id 在 MVP 列表内
         if land_id not in cfg.forbidden_land_ids:
@@ -197,6 +201,7 @@ class ForbiddenLandService:
                     is_sansxiu,
                     land.sansxiu_bonus_reward_rate,
                     land.sansxiu_extra_bonus,
+                    rng,
                 )
             else:
                 rewards = ForbiddenLandService._roll_rewards(
@@ -204,6 +209,7 @@ class ForbiddenLandService:
                     is_sansxiu,
                     land.sansxiu_bonus_reward_rate,
                     land.sansxiu_extra_bonus,
+                    rng,
                 )
 
             # 更新进度
