@@ -1,0 +1,292 @@
+classDiagram
+    %% 《荒天纪》v1.5 · 类图（服务端）
+    %% 分层：api → services → domain/content/db → core
+    %% 既有宗门子系统置于底部，游戏层单向调用，绝不反向依赖
+
+    class Character {
+        +int id
+        +str name
+        +str gender
+        +str personality
+        +str physique
+        +int talent
+        +int level
+        +int realm_index
+        +int realm_stage
+        +int cultivation
+        +int exp_overflow
+        +int hp
+        +int mp
+        +int age_days
+        +int lifespan_max_days
+        +int spirit_stone
+        +int karma
+        +int dao_heart
+        +int str
+        +int con
+        +int spr
+        +int sen
+        +int bon
+        +int wis
+        +int agi
+        +int luk
+        +str region_id
+        +str path_id
+        +str sect_id
+        +str direction_id
+        +str foundation
+        +int fail_streak
+        +int realm_attempts
+        +int bag_slots
+        +str pending_event
+        +str status
+        +str rng_seed
+        +int rng_counter
+        +int version
+        +to_dict()
+        +derived() Attrs
+    }
+
+    class CharacterTechnique {
+        +int char_id
+        +str tech_id
+        +int layer
+        +int sense
+        +str equipped_slot
+    }
+
+    class CharacterEquipment {
+        +int instance_id
+        +int char_id
+        +str template_id
+        +str slot
+        +str rarity
+        +int enhance
+        +str affixes_json
+        +int equipped
+    }
+
+    class CharacterInventory {
+        +int char_id
+        +str item_id
+        +str item_type
+        +int qty
+    }
+
+    class CharacterQuest {
+        +int char_id
+        +str quest_id
+        +str status
+        +int step
+        +str progress_json
+    }
+
+    class CombatSession {
+        +int char_id
+        +str session_json
+        +str status
+        +int turn
+        +int version
+        +to_state() CombatState
+    }
+
+    class SaveSlot {
+        +int slot_id
+        +int char_id
+        +str snapshot_json
+        +str content_version
+        +str content_hash
+        +str checksum
+        +int created_at
+    }
+
+    class RewardGrantLog {
+        +int grant_id
+        +int char_id
+        +str source_type
+        +str source_ref
+        +str payload_json
+    }
+
+    Character "1" --> "*" CharacterTechnique : 拥有功法
+    Character "1" --> "*" CharacterEquipment : 持有装备
+    Character "1" --> "*" CharacterInventory : 持有道具
+    Character "1" --> "*" CharacterQuest : 主线进度
+    Character "1" --> "0..1" CombatSession : 当前战斗
+    Character "1" --> "0..4" SaveSlot : 3手动+1自动
+    Character "1" --> "*" RewardGrantLog : 幂等发奖
+
+    class RngService {
+        +str seed_hex
+        +int counter
+        +next_int(stream, lo, hi) int
+        +next_float(stream) float
+        +roll_bp(stream, bp) bool
+        +pick_weighted(stream, rows, weights) any
+        +bump(char_repo) void
+    }
+
+    class GameClock {
+        +game_year(age_days) int
+        +game_month(age_days) int
+        +action_days(base, realm_index) int
+        +realm_time_factor(realm_index) float
+        +days_to_years(days) int
+    }
+
+    class ContentRegistry {
+        +str content_version
+        +str content_hash
+        +technique(tech_id) TechniqueCfg
+        +item(item_id) ItemCfg
+        +region(region_id) RegionCfg
+        +enemy(enemy_id) EnemyCfg
+        +event(event_id) EventCfg
+        +main_quest(qid) QuestCfg
+        +sect(sect_id) SectCfg
+        +events_for(region_id, realm_index) list
+        +enabled_regions() list
+    }
+
+    class Validators {
+        +validate(registry) void
+        +assert_counts() void
+        +assert_cross_refs() void
+    }
+
+    class LevelDomain {
+        +exp_need(level, realm_index) int
+        +apply_exp(char, gain, rng) LevelResult
+    }
+
+    class AttrsDomain {
+        +base(char) dict
+        +derived(char, registry) dict
+        +combat_power(char, derived) int
+        +soft_cap(name, value) int
+    }
+
+    class RealmDomain {
+        +realm_of(level) int
+        +stage_of(level) int
+        +breakthrough_breakdown(char, prep, registry) Breakdown
+        +apply_failure(char, final_bp, rng) Penalty
+        +foundation_of(attempts, lifespan_ratio) str
+        +recalc_lifespan(char, registry) int
+    }
+
+    class CombatDomain {
+        +open(char, enemy, derived, rng) CombatState
+        +step(state, action, rng) CombatState
+        +enemy_ai(state, rng) EnemyAction
+        +damage(atk, mul, def, pen, crit, rng) int
+        +flee_chance(char, enemy, is_boss) int
+    }
+
+    class EventDomain {
+        +pick(registry, char, rng) EventCfg
+        +chance(option, char) int
+        +resolve(event, option, char, rng) EventResult
+    }
+
+    class QuestDomain {
+        +match_objective(quest, progress, ctx) bool
+        +advance(quest, ctx) CharacterQuest
+        +next_quest(registry, quest_id) str
+    }
+
+    class BootstrapService {
+        +reroll() Candidates
+        +create(payload) Character
+    }
+
+    class ActionService {
+        +act(char_id, kind, repeat, expected_version) ActionResult
+    }
+
+    class BreakthroughService {
+        +preview(char_id, prep) Breakdown
+        +execute(char_id, prep, expected_version) BtResult
+    }
+
+    class CombatService {
+        +get(char_id) CombatState
+        +act(char_id, action) CombatState
+        +finish(state) void
+    }
+
+    class SaveService {
+        +list(char_id) list
+        +save(char_id, slot_id, expected_version) SaveSlot
+        +load(char_id, slot_id) Character
+        +export(char_id, slot_id) ExportPayload
+        +import_payload(payload) SaveSlot
+        +autosave(char_id) void
+    }
+
+    class StateService {
+        +snapshot(char_id) StateDTO
+    }
+
+    class SectBridgeService {
+        +status(char_id) SectStatus
+        +join(char_id, sect_id) SectStatus
+        +set_direction(char_id, direction_id) SectStatus
+        +take_quest(char_id, level) dict
+        +complete_quest(char_id, quest_id) dict
+        +exchange(char_id, item_type, item_id) dict
+        +encounter(char_id) dict
+        +convert(char_id) dict
+        +enter_forbidden(char_id, land_id) dict
+    }
+
+    class GrantService {
+        +grant(char_id, source_type, source_ref, rewards) GrantResult
+    }
+
+    BootstrapService ..> Character
+    BootstrapService ..> RngService
+    ActionService ..> LevelDomain
+    ActionService ..> EventDomain
+    ActionService ..> CombatDomain
+    ActionService ..> SaveService
+    BreakthroughService ..> RealmDomain
+    CombatService ..> CombatDomain
+    SectBridgeService ..> GrantService
+    SaveService ..> ContentRegistry
+    StateService ..> AttrsDomain
+
+    %% ---------- 既有宗门子系统（不改，游戏层单向依赖） ----------
+    class SectConfigLoader {
+        +load() SectConfig
+        +reload() SectConfig
+    }
+    class QuestService {
+        +take(char_id, sect_id, level_str, today_day, game_year) dict
+        +complete(char_id, quest_id, today_day) dict
+    }
+    class ExchangeService {
+        +check_and_exchange(char_id, sect_id, item_type, item_id, cost_contribution, today_day) dict
+    }
+    class ForbiddenLandService {
+        +enter(char_id, land_id, today_day, current_realm_seq, current_game_year) dict
+    }
+    class SectMemberRepository {
+        +get(character_id) dict
+        +upsert(member) int
+    }
+    class SansxiuWalletRepository {
+        +get(character_id) dict
+        +upsert(wallet) void
+        +add_contribution(character_id, amount) dict
+    }
+
+    SectBridgeService ..> QuestService : 复用接取/完成
+    SectBridgeService ..> ExchangeService : 复用资格校验+扣贡献
+    SectBridgeService ..> ForbiddenLandService : 复用进入校验+掉落
+    SectBridgeService ..> GrantService : 补发物品
+    QuestService ..> SectMemberRepository
+    ForbiddenLandService ..> SansxiuWalletRepository
+    GrantService ..> CharacterInventory
+    GrantService ..> CharacterTechnique
+    GrantService ..> RewardGrantLog

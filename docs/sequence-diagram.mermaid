@@ -1,0 +1,84 @@
+%% 《荒天纪》v1.5 · 关键时序图
+%% 主链路：行动结算 → （事件待决 | 战斗触发）→ 自动存档
+%% 其余流程（突破 / 宗门桥接 / 存档导入）见 docs/04-系统设计-v1.5.md §4.3 / §4.6 / §4.8 步骤表
+%% 渲染：mermaid-cli / mermaid.live / VS Code Mermaid 插件
+
+sequenceDiagram
+    autonumber
+    participant B as 浏览器<br/>(ES Module)
+    participant R as GameRouter<br/>/api/v1
+    participant A as ActionService
+    participant K as GameClock
+    participant G as RngService
+    participant L as LevelDomain
+    participant E as EventDomain
+    participant C as CombatDomain
+    participant S as SaveService
+    participant DB as GameRepository<br/>(SQLite 单事务)
+    participant Q as QuestService<br/>ForbiddenLandService<br/>(既有，只读调用)
+    participant GS as GrantService<br/>(幂等发奖)
+
+    B->>R: POST /action {kind:"closed_door", repeat:2, expected_version:7}
+    R->>R: 归属校验（active_char_id）+ 入参白名单
+    R->>DB: 读 character（含 pending_event / combat_session / rng_counter）
+    DB-->>R: char
+    alt pending_event 非空 或 combat_session.status=active
+        R-->>B: 409 {code:4010|4012, message:"请先处理事件/战斗"}
+    else 可行动
+        R->>A: act(char_id, kind, repeat, expected_version)
+        loop repeat 次（1..10，持续闭关）
+            A->>K: action_days(base=30, realm_index=2)
+            K-->>A: 42 日
+            A->>A: age_days += 42（只增不减）
+            A->>A: ExpRate = (5+wis*0.8)×境界×功法×体质×环境×心境×状态×1.50
+            A->>L: apply_exp(cultivation, ExpRate×42, exp_overflow)
+            L-->>A: {levels_up≤5, cultivation, exp_overflow, realm_index}
+            A->>G: next_int("event", 0, 9999) （counter 同事务 +1）
+            G-->>A: 3721
+            alt 3721 < 3500(+1000 仅散修) 且事件池非空
+                A->>E: pick(region, realm_index, 30 月未出)
+                E-->>A: event_id + 选项快照
+                A->>DB: UPDATE character SET pending_event=快照
+                Note over A,DB: 事件待决，本次行动结束，<br/>同一事务内落 rng_counter
+            else 历练/切磋
+                A->>C: open(char, enemy_cfg, derived)
+                C-->>A: CombatState(turn=1, status=active)
+                A->>DB: INSERT combat_session(session_json, status='active')
+            end
+        end
+        A->>S: autosave(char_id)   // slot_id=0
+        S->>DB: UPDATE save_slot SET snapshot_json=? WHERE slot_id=0
+        A->>DB: UPDATE character SET version=version+1（乐观锁 expected_version 校验）
+        DB-->>A: COMMIT
+        A-->>R: {settle:{days,exp,levels_up}, pending_event?|combat?}
+        R-->>B: 200 {ok:true, data:{...}}
+    end
+
+    Note over B,DB: 玩家刷新页面 → GET /state
+    B->>R: GET /state
+    R->>DB: 读 character + 子表 + 宗门表
+    DB-->>R: 同一份已落库状态
+    R-->>B: 同一 pending_event / 同一 combat_session<br/>（rng_counter 已推进 → 绝不重 roll）
+
+    Note over B,DB: 战斗回合（刷新可恢复）
+    B->>R: POST /combat/action {action_type:"skill", skill_id:"shanyue_quan"}
+    R->>DB: 读 combat_session（归属校验：char_id 必须等于 active_char_id）
+    R->>C: step(state, action, rng)
+    C->>C: 先手值比 → 玩家行动 → 敌方 AI → 回合+1 → MP 回 3%
+    C-->>R: new_state(turn=2, log+=[{dmg:118, crit:true}])
+    R->>DB: UPDATE combat_session SET session_json=?, turn=2
+    alt new_state.status != active
+        R->>DB: DELETE combat_session + INSERT milestone_log
+        R->>DB: UPDATE character SET hp/mp/spirit_stone（胜利掉落）
+    end
+    R-->>B: {turn:2, log, status, float_damage:[118]}
+
+    Note over B,DB: 宗门桥接（SectBridgeService 是唯一允许调用既有 Service 的入口）
+    B->>R: POST /sect/quest/complete {quest_id:42}
+    R->>Q: QuestService.complete(char_id, 42, today_day=age_days)
+    Q-->>R: {contribution_gained, new_contribution, unlocked_mid}
+    R->>GS: grant("sect_quest","quest:42",rewards)
+    GS->>DB: INSERT reward_grant_log + 物品/功法入库（同事务）
+    DB-->>GS: UNIQUE(char_id,source_type,source_ref) 防重复发奖
+    GS-->>R: granted
+    R-->>B: {ok:true, data:{contribution, rewards}}
