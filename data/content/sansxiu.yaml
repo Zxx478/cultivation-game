@@ -1,0 +1,107 @@
+# ============================================================
+# 《荒天纪》v1.5 · 散修路径（sansxiu.yaml）
+# ============================================================
+# 用途：第七条路径「僻行独修」的规则与奇遇池。
+#       身份与钱包的权威仍在既有表 sansxiu_wallet / sect_member；
+#       本文件只提供规则与内容（触发条件、权重、判定、产出）。
+# 与宗门的关系：
+#   - 散修无方向加成（方向系数恒 1.0），但神识 ×1.2、事件触发 ×1.10；
+#   - 散修不入 sect_member，贡献点走 sansxiu_wallet.general_contribution；
+#   - 首次入宗时 general_contribution × 50% 转为该宗门 contribution，钱包清零；
+#   - 入宗后不可退回散修（一次性路径）。
+# 字段：
+#   path         身份规则与常驻修正
+#   encounters   奇遇池（3 条；奇遇本身复用 events 链路产生 pending_event）
+#     trigger      触发条件 {kind, base_bp, source}
+#     weight       奇遇池内抽取权重（合计 100）
+#     check        判定 {attr, difficulty_bp}；null 为必成
+#     result       成功文案
+#     technique_id 必得功法（引用 techniques.yaml）
+#     contribution 额外散修贡献点
+#     consumes     消耗（如献祭本命法器）
+#   convert      散修 → 宗门 的贡献转换规则
+# ============================================================
+
+path:
+  id: sansxiu
+  name: 散修
+  display_name: 僻行独修
+  desc: 无门无派，无长辈护道，无同门可依。路是自己踩出来的。
+  direction_coef_bp: 10000        # 无方向加成，恒 1.0（不参与 1.3/1.0/0.8 判定）
+  sen_multiplier_bp: 12000        # 神识 ×1.2（探查效率、禁地首通率）
+  event_multiplier_bp: 11000      # 事件触发率 ×1.10（相对提升，见 game.yaml.event）
+  reveal_bonus_bp: 2000           # 禁地首通率 +20 个百分点（相对增益展示用）
+  enter_sect_allowed: true        # 任意境界可入宗（一次性）
+  leave_to_sansxiu_allowed: false # 入宗后不可退回散修
+  direction_required: false       # 散修不选方向
+  wallet: sansxiu_wallet          # 贡献点存放（general_contribution）
+  sect_quest_levels: [low, mid]   # 散修不可接 high（既有硬规则）
+  forbidden_lands_only_for_sansxiu: true
+  revive_by_pill_only: true       # 无宗门长辈，只能靠九转还魂丹复活
+
+# ---------------- 奇遇池（3 条） ----------------
+encounters:
+  - id: gujing_jiansheng
+    name: 古井剑声
+    desc: 井底传出一声剑鸣，长而清。你俯身去看，看见的不是自己。
+    trigger:
+      kind: action              # 任意行动结算后判定
+      base_bp: 300              # 基础 3%
+      source: [back_hill, duanhuai_village, ancient_ruin_1]
+      realm_min: 3              # 化灵境起可见（与前两条形成梯度）
+    weight: 20
+    check: {attr: con, difficulty_bp: 5000}
+    consumes: {type: natal_equipment, qty: 1}   # 献祭一件本命法器
+    result: 你以本命法器换了一句话。剑鸣止处，剑歌入心。
+    technique_id: qinglian_jian_ge_v1
+    contribution: 200
+
+  - id: liulang_yaosou
+    name: 流浪药叟
+    desc: 老者摊开手掌，两枚药丸一模一样。一枚清心，一枚封喉。
+    trigger:
+      kind: action
+      base_bp: 500              # 5%
+      source: [herb_slope, spirit_creek, palace_secret]
+      realm_min: 2
+    weight: 50
+    check: {attr: luk, difficulty_bp: 5000}
+    consumes: {type: none, qty: 0}
+    result: 你选了左边那枚。老者笑了一声，把药篓递给你看。
+    technique_id: caomu_xin_jing
+    contribution: 100
+
+  - id: shanjian_milu
+    name: 山间迷路
+    desc: 三条岔路，每条都有脚印。雾里有人吹叶哨，三短一长。
+    trigger:
+      kind: action
+      base_bp: 3000             # 30%
+      source: [back_hill, spirit_creek, north_waste]
+      realm_min: 1
+    weight: 30
+    check: {attr: agi, difficulty_bp: 4500}
+    consumes: {type: none, qty: 0}
+    result: 哨声把你带出了雾。回头看，雾里没有路。
+    technique_id: tashan_bu
+    contribution: 50
+
+# ---------------- 贡献转换（散修 → 宗门） ----------------
+convert:
+  rate_bp: 5000                 # general_contribution × 50%
+  round_mode: floor             # 向下取整，余数丢弃
+  zero_wallet_after: true       # 转换后散修钱包清零
+  once: true                    # 一次性
+  flag_key: sansxiu_converted   # character_flag 幂等标记
+  note: >-
+    仅当本次由散修转入宗门时执行；转换量 = floor(general_contribution × 50%)，
+    直接累加进 sect_member.contribution。已有宗门者不得再次触发。
+
+# ------------------------------------------------------------
+# 校验断言：encounters 恰 3 条；technique_id 必须存在于 techniques.yaml；
+#          weight 合计 100；trigger.base_bp ∈ (0, 10000]；
+#          convert.rate_bp 必须等于 data/content/sect/quest_config.yaml 的
+#          contribution.sansxiu_join_convert_rate × 10000（= 5000）。
+# 说明：奇遇与 events.yaml 的关系——奇遇是"散修专属事件源"，命中后仍走
+#       pending_event / event/choose 链路（复用判定与效果 DSL），
+#       因此触发率乘算在 game.yaml.event 之上，不另开一套随机。

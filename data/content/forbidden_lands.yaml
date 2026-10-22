@@ -1,0 +1,222 @@
+# ============================================================
+# 《荒天纪》v1.5 · 禁地（forbidden_lands.yaml）
+# ============================================================
+# 用途：10 处禁地全量配置；MVP 只启用 2 处（enabled: true）。
+#       进入规则（唯一权威仍在 data/content/sect/quest_config.yaml 的
+#       forbidden_land 段）：仅散修、每游戏年 ≤3 次、冷却 30 日、
+#       扣散修贡献点、Boss 战胜利后结算奖励、首通必得指定功法。
+# 字段：
+#   id                 禁地枚举（land_id，与 quest_config 的 lands 键一致）
+#   name               上线名
+#   tier               禁地阶 fan|ling|bao|sheng|di
+#   required_realm_index 可达大境序号
+#   level_min          可达最低全局等级
+#   difficulty         low|mid|high|extreme|final（仅展示，不入公式）
+#   entry_days         进入一次消耗游戏日（凡30/灵60/宝120/圣240/帝360）
+#   entry_contribution 进入一次消耗散修贡献点（凡50/灵200/宝800/圣5000/帝20000）
+#   boss_id            首领（引用 enemies.yaml；null 表示无战斗）
+#   sansxiu_only       是否散修限定（恒 true）
+#   enabled            MVP 是否启用
+#   first_clear_rewards 首通奖励（technique 必发；flag 用于剧情标记）
+#   repeat_rewards     非首通奖励（只给灵石/贡献，防刷）
+#   desc               描述文案
+# ============================================================
+
+lands:
+  - id: gujing_jianyuan
+    name: 古井剑渊
+    tier: fan
+    required_realm_index: 1
+    level_min: 9
+    difficulty: mid
+    entry_days: 30
+    entry_contribution: 50
+    boss_id: shuaibai_jianling
+    sansxiu_only: true
+    enabled: true
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: qinglian_jian_ge_v1}
+    repeat_rewards:
+      - {type: contribution, value: 30}
+      - {type: spirit_stone, value: 200}
+    desc: 村里那口老井，井底不是水。剑鸣一声，能传三里。
+
+  - id: caomu_yuanyuan
+    name: 草木缘渊
+    tier: ling
+    required_realm_index: 2
+    level_min: 10
+    difficulty: mid
+    entry_days: 60
+    entry_contribution: 200
+    boss_id: laoyaosou_fenshen
+    sansxiu_only: true
+    enabled: true
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: caomu_xin_jing}
+    repeat_rewards:
+      - {type: contribution, value: 80}
+      - {type: spirit_stone, value: 400}
+      - {type: item, item_id: long_xue_cao, qty: 2, rate_bp: 4000}
+    desc: 一谷草木，四季不落。谷中有个背药篓的老者，笑得很和气。
+
+  - id: jiuyou_diyu
+    name: 九幽低语
+    tier: bao
+    required_realm_index: 3
+    level_min: 19
+    difficulty: high
+    entry_days: 120
+    entry_contribution: 800
+    boss_id: jiuyou_shizhe
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: qianji_jing_chu}
+    repeat_rewards:
+      - {type: spirit_stone, value: 1200}
+    desc: 往低处走三十里，话声就在耳边。越往下，说得越清。
+
+  - id: wanjian_yizhong
+    name: 万剑遗冢
+    tier: bao
+    required_realm_index: 4
+    level_min: 28
+    difficulty: extreme
+    entry_days: 120
+    entry_contribution: 800
+    boss_id: wanjian_wumingshi
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: wan_jian_guizong_chuwen}
+    repeat_rewards:
+      - {type: spirit_stone, value: 2000}
+    desc: 冢中插剑七十万柄，无一柄有主。碑上无名，剑上有名。
+
+  - id: beihuang_leiyu
+    name: 北荒雷域
+    tier: bao
+    required_realm_index: 5
+    level_min: 37
+    difficulty: extreme
+    entry_days: 120
+    entry_contribution: 800
+    boss_id: leimu
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: beihuang_leisha_jue}
+      - {type: attr, key: con, value: 5}
+    repeat_rewards:
+      - {type: spirit_stone, value: 2600}
+    desc: 北荒无树，只有雷。落一回，地上一尺黑。
+
+  - id: heian_jiezhong
+    name: 黑暗劫冢
+    tier: sheng
+    required_realm_index: 7
+    level_min: 55
+    difficulty: extreme
+    entry_days: 240
+    entry_contribution: 5000
+    boss_id: heian_jieling
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: jingang_buhuai_shen}
+    repeat_rewards:
+      - {type: spirit_stone, value: 8000}
+    desc: 冢上无碑，只有一层压一层的黑。进去的人都说冷。
+
+  - id: shengyu_yuangu
+    name: 圣域渊谷
+    tier: sheng
+    required_realm_index: 10
+    level_min: 82
+    difficulty: extreme
+    entry_days: 240
+    entry_contribution: 5000
+    boss_id: shengyu_shoumuzhe
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: kurong_jing_zhong}
+    repeat_rewards:
+      - {type: spirit_stone, value: 20000}
+    desc: 谷底有一道白光，照了三千年。守墓者记不住自己在守谁。
+
+  - id: diguan_ningxue
+    name: 帝关凝血
+    tier: di
+    required_realm_index: 11
+    level_min: 91
+    difficulty: extreme
+    entry_days: 360
+    entry_contribution: 20000
+    boss_id: diguan_yinghun
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: technique, tech_id: beichen_di_dian}
+    repeat_rewards:
+      - {type: spirit_stone, value: 60000}
+    desc: 关前插满帝兵，血在石上凝了一层。踩上去不粘脚。
+
+  - id: xianmen_huanjing
+    name: 仙门幻境
+    tier: di
+    required_realm_index: 12
+    level_min: 100
+    difficulty: final
+    entry_days: 360
+    entry_contribution: 20000
+    boss_id: xianmen_shouhu
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    first_clear_rewards:
+      - {type: flag, key: immortal_gate_opened}
+    repeat_rewards:
+      - {type: spirit_stone, value: 100000}
+    desc: 门后有白光。守门的说，门后无人。它没说谎。
+
+  - id: shijian_mijing
+    name: 时间秘境
+    tier: sheng
+    required_realm_index: 8
+    level_min: 64
+    difficulty: extreme
+    entry_days: 240
+    entry_contribution: 5000
+    boss_id: null
+    sansxiu_only: true
+    enabled: false
+    sansxiu_bonus_reward_bp: 1000
+    no_combat: true
+    first_clear_rewards:
+      - {type: buff, key: cultivation_multiplier_bp, value: 15000, duration_days: 7}
+    repeat_rewards:
+      - {type: spirit_stone, value: 12000}
+    desc: 此地一日，外面三日。石上苔生苔死，你只坐了一次。
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) lands 恰 10 条；enabled=true 恰为 gujing_jianyuan / caomu_yuanyuan；
+#   2) boss_id 非 null 时必须存在于 enemies.yaml；
+#   3) first_clear_rewards 中 technique 的 tech_id 必须存在于 techniques.yaml；
+#   4) entry_days 按阶递增：凡 30 / 灵 60 / 宝 120 / 圣 240 / 帝 360；
+#      entry_contribution 按阶递增：50 / 200 / 800 / 5000 / 20000；
+#   5) 与 data/content/sect/quest_config.yaml 的 land_id 必须一一对应。
+# 口径冲突提示（已知，需包 B 对齐）：
+#   quest_config.yaml 中古井剑渊首通写的是 tech_id: qinglian_sword_song_v1，
+#   而 SEED_TECHNIQUES 与本文件用的是 qinglian_jian_ge_v1（同一部《青莲剑歌·卷一》）。
+#   以本文件为准，包 B 合并时须把 quest_config 的 ID 改为 qinglian_jian_ge_v1。

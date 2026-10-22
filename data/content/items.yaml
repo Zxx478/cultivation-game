@@ -1,0 +1,195 @@
+# ============================================================
+# 《荒天纪》v1.5 · 道具（items.yaml）
+# ============================================================
+# 用途：丹药 6 + 材料 4 + 消耗品 5 = 15 条（数量硬断言，不许随意增删）。
+#       MVP 的 items.yaml 只容纳这 15 条；幽冥铁/刻纹刀/帝血等
+#       V1.0 材料暂不入表（区域特产以纯文本标注，见 regions.yaml）。
+# 字段：
+#   id          道具枚举（character_inventory.item_id），禁止改名
+#   name        上线名
+#   kind        pill(丹药) | material(材料) | consumable(消耗品)
+#   tier        品阶 fan|ling|bao（MVP 只到宝阶）
+#   sub_tier    品级 xia|zhong|shang
+#   effect      效果键（引擎按此派发；未实现的键只展示文案）
+#   params      效果参数（数值/枚举/上限）
+#   price       基准价（灵石；出售价 = price）
+#   stack       单格堆叠上限（材料 999 / 丹药 99 / 消耗品 99）
+#   description 描述文案
+# ============================================================
+
+items:
+  # ---------------- 丹药（6，可服用） ----------------
+  - id: juqi_dan
+    name: 聚气丹
+    kind: pill
+    tier: fan
+    sub_tier: xia
+    effect: gain_cultivation
+    params: {cultivation: 500}
+    price: 20
+    stack: 99
+    description: 一枚入腹，气机自聚。立得五百修为。
+
+  - id: xi_sui_dan
+    name: 洗髓丹
+    kind: pill
+    tier: fan
+    sub_tier: shang
+    effect: permanent_attr
+    params: {bon: 1, lifetime_max: 99}
+    price: 2000
+    stack: 99
+    description: 洗髓伐骨，终生一次为佳。根骨 +1，终生限服九十九颗。
+
+  - id: po_jing_dan
+    name: 破境丹
+    kind: pill
+    tier: ling
+    sub_tier: zhong
+    effect: breakthrough_bonus
+    params: {bonus_bp: 800, max_per_attempt: 2}
+    price: 5000
+    stack: 99
+    description: 冲关时服之，添一分把握。突破成功率 +8%，一次突破最多两颗。
+
+  - id: jingxin_dan
+    name: 静心丹
+    kind: pill
+    tier: ling
+    sub_tier: shang
+    effect: clear_status
+    params: {status: [qi_deviation, heart_crack]}
+    price: 3000
+    stack: 99
+    description: 心湖止水。清除心境裂隙与走火入魔。
+
+  - id: peiyuan_dan
+    name: 培元丹
+    kind: pill
+    tier: ling
+    sub_tier: zhong
+    effect: permanent_attr
+    params: {con: 3}
+    price: 1500
+    stack: 99
+    description: 固本培元，体魄 +3。
+
+  - id: jiuzhuan_huanshun
+    name: 九转还魂丹
+    kind: pill
+    tier: bao
+    sub_tier: shang
+    effect: revive
+    params: {hp_pct: 50, lifetime_max: 3}
+    price: 12000
+    stack: 99
+    description: 九转炉中炼就，一线魂不散。死亡时自动复活，回五成气血；终生限三颗。
+
+  # ---------------- 材料（4，不可直接使用） ----------------
+  - id: zhixue_cao
+    name: 止血草
+    kind: material
+    tier: fan
+    sub_tier: xia
+    effect: material
+    params: {use: 炼丹/任务}
+    price: 5
+    stack: 999
+    description: 断槐村遍地皆是。揉碎敷上，血即止。
+
+  - id: shou_gu
+    name: 兽骨
+    kind: material
+    tier: fan
+    sub_tier: zhong
+    effect: material
+    params: {use: 炼器/任务}
+    price: 15
+    stack: 999
+    description: 山中荒兽之骨。骨上有纹，纹深者年岁久。
+
+  - id: long_xue_cao
+    name: 龙血草
+    kind: material
+    tier: ling
+    sub_tier: zhong
+    effect: material
+    params: {use: 炼体丹主材}
+    price: 120
+    stack: 999
+    description: 叶背如凝血。生于药坡阴处，十二株中可见其一。
+
+  - id: ling_ye
+    name: 灵液
+    kind: material
+    tier: ling
+    sub_tier: shang
+    effect: material
+    params: {use: 炼丹/突破辅材}
+    price: 200
+    stack: 999
+    description: 灵脉石隙间渗出的水，入口如吞一口晨雾。
+
+  # ---------------- 消耗品（5） ----------------
+  - id: huiqi_san
+    name: 回气散
+    kind: consumable
+    tier: fan
+    sub_tier: zhong
+    effect: restore_hp
+    params: {hp_pct: 30}
+    price: 30
+    stack: 99
+    description: 粗制的伤药。立回三成气血。
+
+  - id: juling_fu
+    name: 聚灵符
+    kind: consumable
+    tier: fan
+    sub_tier: shang
+    effect: restore_mp
+    params: {mp_pct: 50}
+    price: 50
+    stack: 99
+    description: 符纸一燃，灵机自复。立回五成灵力。
+
+  - id: dundi_fu
+    name: 遁地符
+    kind: consumable
+    tier: ling
+    sub_tier: zhong
+    effect: flee_guaranteed
+    params: {success: true, boss_blocked: true}
+    price: 200
+    stack: 99
+    description: 捏碎此符，土遁三十里。战斗必定逃脱（BOSS 战无效）。
+
+  - id: pifu_shi
+    name: 辟府石
+    kind: consumable
+    tier: ling
+    sub_tier: zhong
+    effect: breakthrough_item
+    params: {target_realm_index: 2, qty_per_attempt: 1}
+    price: 800
+    stack: 99
+    description: 石中有九窍，能引地气入体。辟府境突破必需之物。
+
+  - id: chuanxun_yujian
+    name: 传讯玉简
+    kind: consumable
+    tier: fan
+    sub_tier: shang
+    effect: contact_npc
+    params: {range: 同州}
+    price: 100
+    stack: 99
+    description: 对着玉简说一句，远人便听得见。只限同州。
+
+# ------------------------------------------------------------
+# 校验断言：合计 15 条；pill 6 / material 4 / consumable 5；
+#           id 唯一且 6 种丹药的 id 与 SEED_PILLS 的 6 个一致；
+#           每条含 price、effect、stack；材料 stack=999，其余 99。
+# 说明：原任务书列「辟府石」同时出现在材料与消耗品，本表按职能归入
+#       consumable（突破消耗），材料位补「兽骨」（§6.6 村后山特产 +
+#       主线 #3 奖励），保证 6+4+5 与 id 唯一。

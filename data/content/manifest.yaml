@@ -1,0 +1,95 @@
+# ============================================================
+# 《荒天纪》v1.5 · 内容层总清单（manifest）
+# ============================================================
+# 用途：声明内容版本、文件清单与加载顺序；启动期由 content/loader.py
+#       读取本文件，按 order 顺序加载 14 个内容文件，再计算 content_hash。
+# 加载约定：
+#   1) 本文件本身不参与 content_hash（避免自引用）；
+#   2) content_hash = sha256(按 order 拼接的各文件原始字节)，升序；
+#   3) 任一文件缺失或数量断言失败，启动即拒绝（设计文档 §2.2 validators）。
+# ============================================================
+
+# 内容版本：存档导出/导入时与 save_slot.content_version 比对，
+# 不一致应提示"内容版本不兼容"，但仍允许读旧档（MVP 只警告不阻断）。
+content_version: "1.5.0"
+
+# 存档 schema 版本（与内容版本解耦；DB 结构变更时递增）
+schema_version: 1
+
+# 内容总条数声明（validators 逐项硬断言，写死防漏）
+counts:
+  realms: 12            # 12 境全量，enabled 仅前 2
+  physiques: 5          # 凡/灵/剑骨/药体/玄阵心
+  talents: 10           # 资质 1–10 品
+  personalities: 5      # 孤傲/温厚/狡黠/疯癫/中庸
+  techniques: 41        # 通用 12 + 宗门 24 + 散修/禁地 5
+  items: 15             # 丹药 6 + 材料 4 + 消耗品 5
+  equipment_templates: 11
+  equipment_slots: 6
+  affix_pool: 11
+  rarity_tiers: 7
+  regions: 20           # enabled 6
+  enemies: 23           # 16 可达 + 7 禁地 Boss 占位
+  events: 20
+  quests_main: 19       # 卷一 10 + 卷二 9
+  sects: 6
+  sect_techniques: 24   # 6 宗 × 4 部
+  directions: 5         # 体/剑/法/丹/阵
+  direction_nodes: 45   # 5 方向 × 3 层 × 3 节点
+  sansxiu_encounters: 3 # 散修奇遇池（3 部独家功法各一）
+  forbidden_lands: 10   # enabled 2
+
+# 加载顺序：被引用者先行（id 校验才能一次性通过）
+files:
+  - order: 0
+    name: game.yaml
+    role: 全局常量（时间/修为/战斗/突破/背包/存档/属性软上限）
+  - order: 1
+    name: realms.yaml
+    role: 12 境阶梯（等级区间、寿元、修为系数、战力系数）
+  - order: 2
+    name: physiques.yaml
+    role: 5 种体质（权重和 10000bp）
+  - order: 3
+    name: talents.yaml
+    role: 资质 1–10 品系数
+  - order: 4
+    name: personalities.yaml
+    role: 5 性格判定修正
+  - order: 5
+    name: techniques.yaml
+    role: 41 部功法（含宗门 24 / 散修独家 / 禁地独家）
+  - order: 6
+    name: items.yaml
+    role: 6 丹药 + 4 材料 + 5 消耗品
+  - order: 7
+    name: equipments.yaml
+    role: 6 槽 + 11 模板 + 7 档稀有度 + 11 条副词条池
+  - order: 8
+    name: enemies.yaml
+    role: 16 个敌人（杂兵/精英/Boss）
+  - order: 9
+    name: regions.yaml
+    role: 20 区域（含特产/敌人/环境系数）
+  - order: 10
+    name: events.yaml
+    role: 20 条事件（2–4 选项，每选项必有负面代价）
+  - order: 11
+    name: quests_main.yaml
+    role: 19 条主线（卷一 10 + 卷二 9）
+  - order: 12
+    name: sects.yaml
+    role: 6 宗门 + 24 独有功法 + 5 方向树（45 节点）
+  - order: 13
+    name: sansxiu.yaml
+    role: 散修路径 + 奇遇池（3 条）+ 贡献转换（50%）
+  - order: 14
+    name: forbidden_lands.yaml
+    role: 10 处禁地（enabled 2）
+
+# 与本内容层对齐的外部配置（只读，不归本包修改）
+external_refs:
+  - path: data/content/sect/quest_config.yaml
+    note: 宗门任务阈值 / 禁地权威数值；land_id 与本文件 forbidden_lands 单键关联
+  - path: backend/app/db/repository.py
+    note: SEED_TECHNIQUES(36) / SEED_PILLS / SEED_EQUIPMENT 的 id 为兑换发放主键，techniques.yaml 必须全部覆盖

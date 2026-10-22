@@ -1,0 +1,338 @@
+# ============================================================
+# 《荒天纪》v1.5 · 区域（regions.yaml）
+# ============================================================
+# 用途：20 个区域全量配置；MVP 只开放 6 个（enabled: true）。
+#       环境系数直接进 ExpRate 乘算；enemies 引用 enemies.yaml 的 id。
+# 字段：
+#   id            区域枚举（character.region_id），禁止改名
+#   name          上线名
+#   level_min/max 可进入/可刷怪的全局等级区间（1–100）
+#   env_coef      环境系数（1.0 / 1.5 / 2.0 / 3.0 / 5.0），进修为公式
+#   env_label     环境说明（灵脉/福地/圣地/时间秘境）
+#   materials     特产材料（item_id 数组，引用 items.yaml；空数组表示 V1.0 补内容）
+#   material_note 特产文本（含尚未入 items.yaml 的 V1.0 材料）
+#   enemies       常驻敌人（enemy_id 数组）
+#   boss          区域首领（enemy_id 或 null）
+#   travel_days   从相邻区域前往耗时（游戏日）
+#   safe_zone     安全区不刷怪
+#   enabled       MVP 是否开放
+#   desc          描述文案
+# ============================================================
+
+regions:
+  # ================= 卷一（断槐村 1–9，MVP 全开） =================
+  - id: duanhuai_village
+    name: 断槐村
+    level_min: 1
+    level_max: 4
+    env_coef: 1.0
+    env_label: 无
+    materials: [zhixue_cao]
+    material_note: 止血草
+    enemies: []
+    boss: null
+    travel_days: 1
+    safe_zone: true
+    enabled: true
+    desc: 村口老槐断了一半，另一半还活着。你在这里出生，也在这里学会锻血。
+
+  - id: back_hill
+    name: 村后山
+    level_min: 2
+    level_max: 6
+    env_coef: 1.0
+    env_label: 无
+    materials: [zhixue_cao, shou_gu]
+    material_note: 兽骨、止血草
+    enemies: [dushan_shanmao, huangyuan_lang, shougu_yaolang]
+    boss: dushan_shanmao_wang
+    travel_days: 1
+    safe_zone: false
+    enabled: true
+    desc: 山不高，柴草却密。日头一落，猫叫就从石缝里出来。
+
+  - id: herb_slope
+    name: 药坡
+    level_min: 3
+    level_max: 9
+    env_coef: 1.0
+    env_label: 无
+    materials: [long_xue_cao, zhixue_cao]
+    material_note: 龙血草（十二中见一）、止血草
+    enemies: [huangyuan_lang, shanye_tufei, shougu_yaolang]
+    boss: null
+    travel_days: 1
+    safe_zone: false
+    enabled: true
+    desc: 坡向西南，日头足。草叶背面全是红的，像谁的血。
+
+  # ================= 卷二（辟府 10–18，MVP 全开） =================
+  - id: qingyun_outer
+    name: 青云宗外门
+    level_min: 9
+    level_max: 13
+    env_coef: 1.5
+    env_label: 灵脉
+    materials: [ling_ye]
+    material_note: 灵液
+    enemies: [waimen_dizi, shilian_kuilei]
+    boss: null
+    travel_days: 3
+    safe_zone: false
+    enabled: true
+    desc: 三千级石阶上去，才是外门。石阶下等着的人，比石阶还多。
+
+  - id: spirit_creek
+    name: 灵脉溪谷
+    level_min: 11
+    level_max: 16
+    env_coef: 1.5
+    env_label: 灵脉
+    materials: [ling_ye, pifu_shi]
+    material_note: 灵液、辟府石
+    enemies: [lingmai_shou, shougu_yaolang]
+    boss: null
+    travel_days: 2
+    safe_zone: false
+    enabled: true
+    desc: 溪水浅，水底石上有孔。喝一口，喉咙凉到胸口。
+
+  - id: palace_secret
+    name: 辟府秘境
+    level_min: 14
+    level_max: 18
+    env_coef: 2.0
+    env_label: 福地
+    materials: [pifu_shi, ling_ye]
+    material_note: 辟府石（百中见八）、幽冥铁
+    enemies: [mijing_shouwei, yinxiu_cike, mijing_shouling]
+    boss: mijing_shouling
+    travel_days: 3
+    safe_zone: false
+    enabled: true
+    desc: 三层石道往下。第一层有人骨，第二层有字，第三层什么都没有。
+
+  # ================= 卷三（化灵 19–36，V1.0） =================
+  - id: ancient_ruin_1
+    name: 上古遗迹一层
+    level_min: 19
+    level_max: 23
+    env_coef: 1.5
+    env_label: 灵脉
+    materials: []
+    material_note: 残破功法页
+    enemies: []
+    boss: null
+    travel_days: 5
+    safe_zone: false
+    enabled: false
+    desc: 门楣上刻着谁也不认得的字。风从里面吹出来，是暖的。
+
+  - id: ancient_ruin_2
+    name: 上古遗迹二层
+    level_min: 23
+    level_max: 27
+    env_coef: 1.5
+    env_label: 灵脉
+    materials: []
+    material_note: 残破功法页、灵液
+    enemies: []
+    boss: null
+    travel_days: 5
+    safe_zone: false
+    enabled: false
+    desc: 二层的石壁会响。你走一步，它响一声。
+
+  - id: ancient_ruin_3
+    name: 上古遗迹三层
+    level_min: 28
+    level_max: 36
+    env_coef: 2.0
+    env_label: 福地
+    materials: []
+    material_note: 幽冥铁（十六中见一）、刻纹刀
+    enemies: []
+    boss: null
+    travel_days: 6
+    safe_zone: false
+    enabled: false
+    desc: 三层尽头立着一具守灵。它抬眼看你，像看一段旧事。
+
+  - id: sect_forbidden
+    name: 宗内密室
+    level_min: 30
+    level_max: 36
+    env_coef: 2.0
+    env_label: 福地
+    materials: []
+    material_note: 宝阶功法残页
+    enemies: []
+    boss: null
+    travel_days: 6
+    safe_zone: false
+    enabled: false
+    desc: 长老的钥匙有三把，锁只有一道。门里的人比门外的人多。
+
+  - id: engrave_cliff
+    name: 刻纹崖
+    level_min: 28
+    level_max: 36
+    env_coef: 2.0
+    env_label: 福地
+    materials: []
+    material_note: 刻纹石
+    enemies: []
+    boss: null
+    travel_days: 5
+    safe_zone: false
+    enabled: false
+    desc: 崖上刻满纹路，深浅不一。有人说那是道，有人说是刀痕。
+
+  # ================= 卷四（布阵 37–54，V2.0） =================
+  - id: north_waste
+    name: 北荒战场
+    level_min: 37
+    level_max: 45
+    env_coef: 2.0
+    env_label: 荒原
+    materials: []
+    material_note: 荒兽内丹、阵图
+    enemies: []
+    boss: null
+    travel_days: 8
+    safe_zone: false
+    enabled: false
+    desc: 雪下有旗，旗上有名。名字都被风磨平了。
+
+  - id: shi_pass
+    name: 蚀族关隘
+    level_min: 41
+    level_max: 45
+    env_coef: 2.0
+    env_label: 关隘
+    materials: []
+    material_note: 蚀族骨甲
+    enemies: []
+    boss: null
+    travel_days: 9
+    safe_zone: false
+    enabled: false
+    desc: 关上不开门。门是从里面顶住的。
+
+  - id: five_cities
+    name: 州域五城
+    level_min: 46
+    level_max: 54
+    env_coef: 2.0
+    env_label: 城池
+    materials: []
+    material_note: 全品类商店
+    enemies: []
+    boss: null
+    travel_days: 10
+    safe_zone: true
+    enabled: false
+    desc: 五城相连，灯火照到天亮。这里什么都能买到，包括别人的人。
+
+  # ================= 卷五（燃灯/归一 55–72，V2.0） =================
+  - id: dark_abyss
+    name: 黑暗深渊
+    level_min: 55
+    level_max: 63
+    env_coef: 3.0
+    env_label: 圣地
+    materials: []
+    material_note: 灯芯、邪祟残核
+    enemies: []
+    boss: null
+    travel_days: 12
+    safe_zone: false
+    enabled: false
+    desc: 深渊无底，也无光。走下去的人，多半想不起自己为什么走。
+
+  - id: holy_outskirt
+    name: 圣域外围
+    level_min: 64
+    level_max: 72
+    env_coef: 3.0
+    env_label: 圣地
+    materials: []
+    material_note: 圣阶功法残页、九窍石
+    enemies: []
+    boss: null
+    travel_days: 12
+    safe_zone: false
+    enabled: false
+    desc: 圣域的门槛是一道光。跨过去的人不多，回来的更少。
+
+  - id: time_secret
+    name: 时间秘境
+    level_min: 64
+    level_max: 72
+    env_coef: 5.0
+    env_label: 时间秘境
+    materials: []
+    material_note: 归一石
+    enemies: []
+    boss: null
+    travel_days: 12
+    safe_zone: true
+    enabled: false
+    desc: 这里一日，外面三日。石上苔生苔死，你只坐了一次。
+
+  # ================= 卷六（帝路 82–100，V2.0） =================
+  - id: heaven_road
+    name: 登天路
+    level_min: 82
+    level_max: 90
+    env_coef: 3.0
+    env_label: 圣地
+    materials: []
+    material_note: 帝血（千中见四）、帝兵胚
+    enemies: []
+    boss: null
+    travel_days: 14
+    safe_zone: false
+    enabled: false
+    desc: 路是一级一级的石阶，看不到顶。每上一级，身后就少一级。
+
+  - id: emperor_pass
+    name: 帝关
+    level_min: 91
+    level_max: 99
+    env_coef: 3.0
+    env_label: 圣地
+    materials: []
+    material_note: 帝血（千中见四）
+    enemies: []
+    boss: null
+    travel_days: 15
+    safe_zone: false
+    enabled: false
+    desc: 关前插着历代准帝的兵。兵未锈，人已成灰。
+
+  - id: emperor_tomb
+    name: 帝冢
+    level_min: 95
+    level_max: 100
+    env_coef: 3.0
+    env_label: 圣地
+    materials: []
+    material_note: 帝兵、帝源
+    enemies: []
+    boss: null
+    travel_days: 16
+    safe_zone: false
+    enabled: false
+    desc: 冢中无棺，只有一座空座。座前刻着两个字：等你。
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) regions 恰 20 条；enabled=true 恰为 duanhuai_village / back_hill /
+#      herb_slope / qingyun_outer / spirit_creek / palace_secret；
+#   2) level_min/max 并集覆盖 1–18 无空洞（MVP 6 区）；
+#   3) env_coef ∈ {1.0, 1.5, 2.0, 3.0, 5.0}；
+#   4) materials / enemies / boss 中的 id 必须可达。
+# 说明：14 个未开放区域的 enemies 与 materials 留空，属 V1.0 内容位；
+#       其特产仅以 material_note 纯文本占位，避免引用不存在的 item_id
+#       （items.yaml 被硬约束为 15 条）。

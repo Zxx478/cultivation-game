@@ -1,0 +1,107 @@
+# ============================================================
+# 《荒天纪》v1.5 · 体质（physiques.yaml）
+# ============================================================
+# 用途：创角时按权重抽取体质（权重合计必须 10000bp = 100%）。
+# 口径来源：v1.4 §4.7.1（MVP 5 种：凡/灵/剑骨/药体/玄阵心）。
+# 字段：
+#   id               体质枚举（character.physique 的取值）
+#   name             上线名
+#   weight_bp        创角抽取权重（bp）
+#   cultivation_bp   修炼系数（10000 = ×1.00），进入 ExpRate 的「体质系数」
+#   attr_bonus_pct   属性加成（百分比键值；all 表示全属性）
+#   breakthrough_bp  突破成功率加成（bp，加到 final_bp）
+#   special          专属特性（纯文本，引擎按 key 实现；未实现的 key 只展示）
+#   affinity         方向适配系数（1.3 适配 / 1.0 中性 / 0.8 不适）
+#   init_attr_base   创角初始属性基准（再加 5 点自由分配）
+# ============================================================
+
+physiques:
+  - id: fan_ti
+    name: 凡体
+    weight_bp: 5000
+    cultivation_bp: 10000
+    attr_bonus_pct: {}
+    breakthrough_bp: 0
+    special:
+      - key: none
+        desc: 无加成，亦无惩罚；凡体走到最后者，方见真章。
+    affinity: {body: 1.0, sword: 1.0, spell: 1.0, alchemy: 1.0, array: 1.0}
+    init_attr_base: 10
+    enabled: true
+    desc: 骨骼寻常，血气平平。村中十人，九人如此。
+
+  - id: ling_ti
+    name: 灵体
+    weight_bp: 3000
+    cultivation_bp: 11000
+    attr_bonus_pct: {all: 5}
+    breakthrough_bp: 200
+    special:
+      - key: mp_regen_pct
+        value: 20
+        desc: 灵力恢复 +20%
+      - key: heart_sense_pct
+        value: 10
+        desc: 同阶心法参悟速度 +10%
+    affinity: {body: 0.8, sword: 1.0, spell: 1.3, alchemy: 1.3, array: 1.0}
+    init_attr_base: 12
+    enabled: true
+    desc: 生而通灵，气息清透，草木近之则活。
+
+  - id: jian_gu
+    name: 剑骨
+    weight_bp: 1000
+    cultivation_bp: 10500
+    attr_bonus_pct: {str: 12, agi: 8}
+    breakthrough_bp: 300
+    special:
+      - key: sword_skill_pct
+        value: 15
+        desc: 装备剑类武器时技能倍率 +15%
+      - key: crit_rate_bp
+        value: 500
+        desc: 暴击率 +5%
+    affinity: {body: 1.0, sword: 1.3, spell: 0.8, alchemy: 1.0, array: 0.8}
+    init_attr_base: 12
+    enabled: true
+    desc: 骨中生锋，夜里可闻轻鸣。此命宜执剑。
+
+  - id: yao_ti
+    name: 药体
+    weight_bp: 800
+    cultivation_bp: 10500
+    attr_bonus_pct: {con: 6, spr: 10}
+    breakthrough_bp: 200
+    special:
+      - key: pill_effect_pct
+        value: 25
+        desc: 服用丹药效价 +25%
+      - key: alchemy_rate_pct
+        value: 15
+        desc: 炼丹成功率 +15%
+    affinity: {body: 0.8, sword: 0.8, spell: 1.0, alchemy: 1.3, array: 1.0}
+    init_attr_base: 11
+    enabled: true
+    desc: 血带草木气，伤口愈合甚快，虫蚁不近。
+
+  - id: xuan_zhen_xin
+    name: 玄阵心
+    weight_bp: 200
+    cultivation_bp: 10800
+    attr_bonus_pct: {sen: 15}
+    breakthrough_bp: 300
+    special:
+      - key: array_effect_pct
+        value: 25
+        desc: 阵法效果 +25%
+      - key: heart_slot_bonus
+        value: 1
+        desc: 可同时装备 2 部心法
+    affinity: {body: 0.8, sword: 0.8, spell: 1.0, alchemy: 1.0, array: 1.5}
+    init_attr_base: 11
+    enabled: true
+    desc: 心窍自开，能听地脉走向。生来便与阵图相亲。
+
+# 权重校验：5000 + 3000 + 1000 + 800 + 200 = 10000bp = 100%
+# 方向键含义：body 体修 / sword 剑修 / spell 法修 / alchemy 丹修 / array 阵修
+# 散修身份不吃方向系数，恒取 1.0（见 game.yaml.path）

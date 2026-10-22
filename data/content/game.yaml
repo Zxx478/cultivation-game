@@ -1,0 +1,237 @@
+# ============================================================
+# 《荒天纪》v1.5 · 全局数值配置（game.yaml）
+# ============================================================
+# 用途：时间标度、修为产出、行动耗时、事件触发、战斗系数、突破准备、
+#       背包/存档/属性软上限。所有数值均外置，改平衡只改本文件。
+# 单位约定：
+#   - 时间：游戏日（1 年 = 360 日 = 12 月 × 30 日）；
+#   - 概率/系数：一律用「基点 bp」（10000bp = 100%），整数，避免浮点误差；
+#   - 修为：整数，单位「修为」。
+# ============================================================
+
+# ---------- 时间标度（单一时钟，只增不减） ----------
+# age_days 初值取 1（= 第 1 日），game_year(d) = (d - 1) // 360 + 1
+# 该口径与既有 forbidden_land_service 完全一致，改动会错位首个游戏年边界。
+time:
+  days_per_year: 360
+  days_per_month: 30
+  months_per_year: 12
+  age_days_initial: 1
+  game_year_formula: "(age_days - 1) // 360 + 1"
+
+# ---------- 行动基础耗时（境界动态化前的基准值） ----------
+# 实际耗时 = base_days × (1 + realm_time_factor × (realm_index - 1))
+# 锻血（realm_index=1）闭关 30 日；辟府（realm_index=2）闭关 42 日。
+action_base_days:
+  seclusion: 30      # 闭关
+  adventure: 15      # 历练
+  gather: 10         # 采药
+  spar: 3            # 切磋
+  meditate: 10       # 打坐
+  breakthrough: 3    # 突破
+
+# 境界时间膨胀系数（0.40 → 每提升一大境，耗时 +40%）
+realm_time_factor: 0.40
+
+# 单次请求内最多重复次数（"持续闭关"批量，降低点击成本）
+action_max_repeat: 10
+
+# ---------- 修为产出 ----------
+# ExpRate_raw = (5 + 悟性 × 0.8) × (1 + 0.35 × (境界序号 - 1))
+#               × 功法系数 × 体质系数 × 环境系数 × 心境系数 × 状态系数
+# ExpRate = ExpRate_raw × exp_rate_global_bp / 10000
+# 单次闭关修为 = ExpRate × action_days("seclusion", realm_index)
+# 单级需求 Exp(L) = floor(100 × L^1.78 × K(realm))，K 见 realms.yaml.exp_k_bp
+exp:
+  exp_rate_global_bp: 15000     # 全局倍率 1.50×，唯一节奏调节旋钮
+  base_constant: 5
+  wis_factor_bp: 8000           # 悟性 × 0.8
+  realm_growth_bp: 3500         # 每大境 +35%
+  level_exponent: 1.78
+  level_base: 100
+  max_consecutive_ups: 5        # 单次结算最多连升 5 级
+  keep_overflow: true           # 超出部分进 exp_overflow，不丢失
+  mvp_level_cap: 18             # MVP 等级上限（12 境配置全量存在）
+  method_stats_in_bp: 10000     # 打坐回气比例（20%）
+
+# 心境系数（按道心）：区间左闭右闭
+mood_coef_bp:
+  - {min: 80, max: 100, coef_bp: 12000}
+  - {min: 60, max: 79, coef_bp: 11000}
+  - {min: 30, max: 59, coef_bp: 10000}
+  - {min: 0, max: 29, coef_bp: 7500}
+
+# 状态系数
+status_coef_bp:
+  normal: 10000
+  injured: 9000
+  qi_deviation: 5000      # 走火入魔
+  dual_cultivate: 13000   # 双修
+  dead: 0
+
+# ---------- 事件 ----------
+event:
+  trigger_bp: 3500              # 每次行动结算后 35% 触发
+  # 散修加成口径（已冻结为**相对提升**，禁止改回加法）：
+  #   final_trigger_bp = trigger_bp × sansxiu_event_multiplier_bp / 10000
+  #   = 3500 × 1.10 = 3850bp（38.5%），不是 3500 + 1000 = 4500bp。
+  sansxiu_event_multiplier_bp: 11000
+  dedupe_months: 30             # 同一事件 30 游戏月内不重复（1800 日）
+  dedupe_days: 1800
+  avoid_pool_exhausted: false   # 池子耗尽时允许重复（保底不空转）
+  base_success_bp: 5500         # 判定基础值缺省（配置项覆盖，40%–70%）
+  success_min_bp: 500           # clamp 下限 5%
+  success_max_bp: 9500          # clamp 上限 95%
+  luck_factor_bp: 30            # 气运 × 0.3% → 每点 30bp
+  karma_positive_divisor: 100   # 因果 > 0：+因果/100
+  karma_negative_divisor: 150   # 因果 < 0：-|因果|/150
+  max_time_cost_days: 720       # 单选项最多耗时 24 月
+  # 类别权重（合计 10000bp）
+  category_weights_bp:
+    resource: 3000
+    npc: 2500
+    combat: 2000
+    fortune: 1200
+    trap: 800
+    karma: 500
+
+# ---------- 战斗 ----------
+combat:
+  max_turns: 30                 # 30 回合未分胜负 → timeout
+  enemy_ai_skill_bp: 6000       # 敌方灵力充足时 60% 概率放技能
+  flee_base_bp: 4500            # 基础逃跑 45%
+  flee_min_bp: 500              # clamp 下限 5%
+  flee_max_bp: 9000             # clamp 上限 90%
+  flee_boss_penalty_bp: 3000    # BOSS 场 -30%
+  flee_secret_penalty_bp: 2000  # 秘境场 -20%
+  flee_fail_limit: 3            # 连续逃跑失败 3 次后禁逃
+  mp_regen_bp_per_turn: 300     # 每回合恢复灵力上限的 3%
+  mp_regen_bp_on_win: 10000     # 战斗结束灵力回满
+  hp_restore_on_revive_bp: 5000 # 还魂丹复活回 50% 气血
+  crit_damage_base_bp: 15000    # 暴击基础 150%
+  crit_damage_max_bp: 30000     # 暴击上限 300%
+  crit_rate_max_bp: 6000        # 暴击率上限 60%
+  hit_base_bp: 8500             # 基础命中 85%
+  hit_max_bp: 9900
+  evade_max_bp: 4000            # 闪避上限 40%
+  dr_max_bp: 7500               # 减伤上限 75%
+  # 连战惩罚：同一游戏年第 n 场，敌方属性 ×(1 + 0.15 × (n-1))，上限 ×1.6
+  consec_battle_step_bp: 1500
+  consec_battle_cap_bp: 6000
+  fatigue_bp: 2000              # 第 5 场起玩家全属性 -20%（打坐解除）
+  fatigue_from_battle: 5
+  # 越阶封锁：敌我等级差 ≥ 3 大境（27 级）禁止开战
+  level_block_gap: 27
+  defend_def_multiplier_bp: 15000  # 防御指令：本回合参与减伤的 def ×1.5
+  # 伤害系数表（PEN 相对敌防的三档）
+  pen_high_bp: 11500
+  pen_mid_bp: 10000
+  pen_low_bp: 8000
+
+# ---------- 突破 ----------
+breakthrough:
+  chance_min_bp: 500            # 下限 5%
+  chance_max_bp: 9500           # 上限 95%
+  prepare_cap_bp: 3000          # 冲关准备（丹药/护法/吉日/灵地）四类加成合计上限 +30%
+  pill_bonus_bp: 800            # 破境丹每颗 +8%
+  pill_max_count: 2             # 每次突破最多 2 颗
+  guardian_bonus_bp: 1000       # 护法 +10%
+  omen_bonus_bp: 600            # 吉日 +6%
+  land_bonus_bp: 600            # 灵地 +6%
+  fail_bonus_bp: 1500           # 连败补偿 +15%/次
+  fail_bonus_cap_bp: 3000       # 连败补偿上限 +30%
+  guaranteed_after_fails: 5     # 5 连败后第 6 次必成（final_bp=10000）
+  cooldown_days: 30             # 失败后冷却 30 日
+  min_lifespan_days: 3600       # 寿元 < 10 年禁止突破
+  hp_required_bp: 8000          # 突破前气血须 ≥ 80%
+  # 三档惩罚（按失败时 final_bp 分档）
+  penalty_tiers:
+    - {min_bp: 6000, name: light, cultivation_loss_bp: 1000, hp_loss_bp: 3000, dao_heart: 0, qi_deviation_bp: 0}
+    - {min_bp: 3000, name: medium, cultivation_loss_bp: 2000, hp_loss_bp: 6000, dao_heart: 0, qi_deviation_bp: 0}
+    - {min_bp: 0, name: heavy, cultivation_loss_bp: 3500, hp_loss_bp: 9000, dao_heart: 5, qi_deviation_bp: 500}
+  # 根基评价（按本境 realm_attempts 判定）
+  foundation:
+    - {attempts: 1, name: 圆满, attr_bonus_bp: 500, next_realm_bp: 300}
+    - {attempts: 2, name: 扎实, attr_bonus_bp: 200, next_realm_bp: 0}
+    - {attempts: 3, name: 虚浮, attr_bonus_bp: -300, next_realm_bp: 0}
+    - {attempts: 4, name: 崩坏, attr_bonus_bp: -800, next_realm_bp: -500}
+
+# ---------- 创角 ----------
+creation:
+  reroll_max: 3                 # 可重掷 3 次
+  free_points: 5                # 自由加点 5 点
+  point_single_max: 3           # 单项最多 +3
+  talent_min: 1
+  talent_max: 10
+  wis_min: 10
+  wis_max: 30
+  name_max_len: 12
+
+# ---------- 背包 ----------
+bag:
+  base_slots: 60
+  material_stack: 999
+  alchemy_stack: 999
+  pill_stack: 99
+  consumable_stack: 99
+  equipment_stack: 1            # 装备永不堆叠
+  expand_step: 20
+  expand_price: 5000
+  expand_max_slots: 60          # 最多再扩 60 格
+  storage_ring_bonus: [10, 18, 30]
+
+# ---------- 存档 ----------
+save:
+  manual_slots: 3
+  auto_slot: 0
+  auto_save_on_action: true
+  max_import_bytes: 2097152     # 导入体积上限 2MB
+  checksum_algo: HMAC-SHA256
+  optimistic_lock: true
+
+# ---------- 属性软上限 ----------
+attrs:
+  initial:
+    str: 10
+    con: 10
+    spr: 10
+    sen: 10
+    bon: 10
+    wis: 10
+    agi: 10
+    luk: 5
+    mnd: 10                     # 道心
+    karma: 0                    # 因果
+  soft_cap:
+    str: 9999
+    con: 9999
+    spr: 9999
+    sen: 9999
+    bon: 999
+    wis: 500
+    agi: 9999
+    luk: 100
+    mnd: 100
+    karma_max: 1000
+    karma_min: -1000
+
+# ---------- 身份与路径 ----------
+path:
+  sansxiu_id: sansxiu
+  sect_join_min_level: 10       # 辟府 Lv.10 触发"乱世择门"
+  sansxiu_sen_multiplier_bp: 12000   # 散修神识 ×1.2
+  sansxiu_convert_rate_bp: 5000      # 入宗时散修贡献 50% 转换
+  sect_count: 6
+
+# ---------- 禁地 ----------
+forbidden:
+  sansxiu_only: true
+  entries_per_game_year: 3
+  cooldown_days: 30
+  first_clear_technique_guaranteed: true
+  repeat_reward_only_stone: true
+
+# ---------- 掉落折扣（回低阶区域防刷） ----------
+region_drop:
+  low_level_discount_bp: 3000   # 回低阶区域掉落降为 30%
+  scale_enemy_to_player_realm: true

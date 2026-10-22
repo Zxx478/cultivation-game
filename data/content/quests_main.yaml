@@ -1,0 +1,521 @@
+# ============================================================
+# 《荒天纪》v1.5 · 主线任务（quests_main.yaml）
+# ============================================================
+# 用途：19 条主线（卷一 10 + 卷二 9），对应 Lv.1–18 全部流程。
+#       任务不写死文案分支，全部由 objectives + rewards 驱动。
+# 状态机：locked →(前置完成) active →(目标计数满) ready →(/quests/claim) completed
+# 字段：
+#   id             任务枚举 quest_01..quest_19
+#   order          1–19，顺序即解锁链
+#   volume         1=卷一（锻血 Lv.1–9）｜2=卷二（辟府 Lv.10–18）
+#   title/desc     标题与文案（半文半白）
+#   level_min/max  可执行等级窗口（相邻任务允许交界重叠，并集须覆盖 1–18 无空洞）
+#   trigger_level  前置满足后的激活等级（PRD §6.2 的触发条件）
+#   region_id      引导区域
+#   prereq         前置任务 id 数组（空 = 开局即 active）
+#   objective_rule all（全达成）| any_group（任一组全达成）
+#   objectives     目标数组（group 为分组键）
+#   rewards        exp/stones/items/equipments/techniques/attrs/contribution/flags
+#   unlock_next    完成后自动置为 active 的任务
+# 目标类型（13 种）：
+#   talk{npc_id,count} / cultivate{count} / kill{enemy_id,count}
+#   collect{item_id,count} / deliver{item_id,count,npc_id}
+#   reach_level{level} / breakthrough{realm_index} / join_sect{accept_sect_ids}
+#   choose_direction{directions} / complete_sect_quest{count}
+#   sansxiu_encounter{count} / enter_forbidden{land_id,count} / event_choice{event_id}
+# ============================================================
+
+quests:
+  # ================= 卷一 · 荒村孤童（10） =================
+  - id: quest_01
+    order: 1
+    volume: 1
+    title: 断槐之下
+    desc: 村口老槐断了一半。老瞎子坐在树下，眼窝是两个浅坑。他先开口，叫了你的名字。
+    level_min: 1
+    level_max: 1
+    trigger_level: 1
+    region_id: duanhuai_village
+    prereq: []
+    objective_rule: all
+    objectives:
+      - {type: talk, npc_id: lao_xiazi, count: 1, group: main}
+    rewards:
+      exp: 50
+      stones: 0
+      items: []
+      equipments: [xuanbu_daopao]
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [intro_done]
+    unlock_next: [quest_02]
+
+  - id: quest_02
+    order: 2
+    volume: 1
+    title: 第一次锻血
+    desc: 老瞎子说，先别想着修仙。先把血烧起来。村后山有一块青石，坐着不冷。
+    level_min: 2
+    level_max: 2
+    trigger_level: 2
+    region_id: back_hill
+    prereq: [quest_01]
+    objective_rule: all
+    objectives:
+      - {type: cultivate, count: 1, group: main}
+    rewards:
+      exp: 200
+      stones: 0
+      items: []
+      equipments: []
+      techniques: []
+      attrs: {str: 2}
+      contribution: 0
+      flags: [first_seclusion]
+    unlock_next: [quest_03]
+
+  - id: quest_03
+    order: 3
+    volume: 1
+    title: 山中有虎
+    desc: 山里没有虎，只有一只独眼的山猫。它咬死过村里的牛，也咬死过人。
+    level_min: 2
+    level_max: 3
+    trigger_level: 2
+    region_id: back_hill
+    prereq: [quest_02]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: dushan_shanmao, count: 1, group: main}
+    rewards:
+      exp: 400
+      stones: 30
+      items:
+        - {item_id: shou_gu, qty: 2}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: []
+    unlock_next: [quest_04]
+
+  - id: quest_04
+    order: 4
+    volume: 1
+    title: 药锄与血
+    desc: 药坡的止血草能换钱。老瞎子要三株，说不是自己用。
+    level_min: 3
+    level_max: 4
+    trigger_level: 3
+    region_id: herb_slope
+    prereq: [quest_03]
+    objective_rule: all
+    objectives:
+      - {type: collect, item_id: zhixue_cao, count: 3, group: main}
+    rewards:
+      exp: 500
+      stones: 0
+      items:
+        - {item_id: zhixue_cao, qty: 3}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [gather_unlocked]
+    unlock_next: [quest_05]
+
+  - id: quest_05
+    order: 5
+    volume: 1
+    title: 老瞎子的眼
+    desc: 三株草摆在青石上。老瞎子摸了一遍，忽然说：有一株是你自己挖的。
+    level_min: 4
+    level_max: 5
+    trigger_level: 4
+    region_id: duanhuai_village
+    prereq: [quest_04]
+    objective_rule: all
+    objectives:
+      - {type: deliver, item_id: zhixue_cao, count: 3, npc_id: lao_xiazi, group: main}
+    rewards:
+      exp: 800
+      stones: 0
+      items: []
+      equipments: []
+      techniques: [duanxue_jue]
+      attrs: {}
+      contribution: 0
+      flags: [technique_unlocked]
+    unlock_next: [quest_06]
+
+  - id: quest_06
+    order: 6
+    volume: 1
+    title: 村里的哭声
+    desc: 夜里有人哭。柴房里堵着一个孩子。你可以去，也可以掩上门。
+    level_min: 4
+    level_max: 6
+    trigger_level: 4
+    region_id: duanhuai_village
+    prereq: [quest_05]
+    objective_rule: all
+    objectives:
+      - {type: event_choice, event_id: village_cry, group: main}
+    rewards:
+      exp: 300
+      stones: 0
+      items: []
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [karma_branch_opened]
+    unlock_next: [quest_07]
+
+  - id: quest_07
+    order: 7
+    volume: 1
+    title: 第三次锻血
+    desc: 第三次锻血最痛。骨头里有东西在敲，一夜敲了三百下。
+    level_min: 5
+    level_max: 7
+    trigger_level: 5
+    region_id: back_hill
+    prereq: [quest_06]
+    objective_rule: all
+    objectives:
+      - {type: reach_level, level: 5, group: main}
+    rewards:
+      exp: 1500
+      stones: 0
+      items: []
+      equipments: []
+      techniques: []
+      attrs: {con: 3}
+      contribution: 0
+      flags: [pifu_hint]
+    unlock_next: [quest_08]
+
+  - id: quest_08
+    order: 8
+    volume: 1
+    title: 荒兽来袭
+    desc: 荒年，狼下山。村口只守得住一夜，你要守到天亮。
+    level_min: 6
+    level_max: 8
+    trigger_level: 6
+    region_id: back_hill
+    prereq: [quest_07]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: huangyuan_lang, count: 3, group: main}
+    rewards:
+      exp: 3000
+      stones: 300
+      items:
+        - {item_id: shou_gu, qty: 3}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [combat_full]
+    unlock_next: [quest_09]
+
+  - id: quest_09
+    order: 9
+    volume: 1
+    title: 第六次锻血
+    desc: 第六次锻血要一味龙血草。药坡阴处才有，十二株里只见一株。
+    level_min: 7
+    level_max: 9
+    trigger_level: 7
+    region_id: herb_slope
+    prereq: [quest_08]
+    objective_rule: all
+    objectives:
+      - {type: reach_level, level: 7, group: main}
+      - {type: collect, item_id: long_xue_cao, count: 1, group: main}
+    rewards:
+      exp: 4000
+      stones: 0
+      items:
+        - {item_id: long_xue_cao, qty: 1}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [body_pill_recipe]
+    unlock_next: [quest_10]
+
+  - id: quest_10
+    order: 10
+    volume: 1
+    title: 拜入山门
+    desc: 青云宗试剑台上立着三具傀儡。打过它们，你才算有了个去处。
+    level_min: 9
+    level_max: 10
+    trigger_level: 9
+    region_id: qingyun_outer
+    prereq: [quest_09]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: shilian_kuilei, count: 3, group: main}
+      - {type: breakthrough, realm_index: 2, group: main}
+    rewards:
+      exp: 8000
+      stones: 0
+      items:
+        - {item_id: pifu_shi, qty: 1}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [volume1_cleared, sect_token]
+    unlock_next: [quest_11]
+
+  # ================= 卷二 · 辟府初开（9） =================
+  - id: quest_11
+    order: 11
+    volume: 2
+    title: 乱世择门
+    desc: 六座山门同时开了门。也有人劝你：独行也无不可。门里门外，各有各的债。
+    level_min: 10
+    level_max: 10
+    trigger_level: 10
+    region_id: qingyun_outer
+    prereq: [quest_10]
+    objective_rule: any_group
+    objectives:
+      - {type: join_sect, accept_sect_ids: [qingyun_sword, wanfa_spell, taishang_pill, xuanzhen_array, dahuang_body, youming_demon], group: sect}
+      - {type: choose_direction, directions: [sword, spell, alchemy, array, body], group: sect}
+      - {type: join_sect, accept_sect_ids: [sansxiu], group: sansxiu}
+    rewards:
+      exp: 5000
+      stones: 200
+      items: []
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 0
+      flags: [path_chosen]
+    unlock_next: [quest_12]
+
+  - id: quest_12
+    order: 12
+    volume: 2
+    title: 山门初立
+    desc: 名分有了，活也来了。扫阶、守库、追野犬，都是修行。无门无派者，只能自己去撞。
+    level_min: 10
+    level_max: 11
+    trigger_level: 10
+    region_id: qingyun_outer
+    prereq: [quest_11]
+    objective_rule: any_group
+    objectives:
+      - {type: complete_sect_quest, count: 1, group: sect}
+      - {type: sansxiu_encounter, count: 1, group: sansxiu}
+    rewards:
+      exp: 6000
+      stones: 300
+      items:
+        - {item_id: huiqi_san, qty: 2}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 40
+      flags: [sect_quest_open]
+    unlock_next: [quest_13]
+
+  - id: quest_13
+    order: 13
+    volume: 2
+    title: 灵脉溪谷
+    desc: 溪谷水浅，水底石上有孔。孔里渗出的东西，喝一口凉到胸口。
+    level_min: 11
+    level_max: 12
+    trigger_level: 11
+    region_id: spirit_creek
+    prereq: [quest_12]
+    objective_rule: all
+    objectives:
+      - {type: collect, item_id: ling_ye, count: 3, group: main}
+    rewards:
+      exp: 9000
+      stones: 400
+      items:
+        - {item_id: ling_ye, qty: 2}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 60
+      flags: []
+    unlock_next: [quest_14]
+
+  - id: quest_14
+    order: 14
+    volume: 2
+    title: 外门倾轧
+    desc: 外门弟子三百，粥只够两百人。有人先动手，理由找得很快。
+    level_min: 12
+    level_max: 13
+    trigger_level: 12
+    region_id: qingyun_outer
+    prereq: [quest_13]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: waimen_dizi, count: 1, group: main}
+    rewards:
+      exp: 12000
+      stones: 600
+      items:
+        - {item_id: pifu_shi, qty: 1}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 80
+      flags: [inner_strife_done]
+    unlock_next: [quest_15]
+
+  - id: quest_15
+    order: 15
+    volume: 2
+    title: 秘境之门
+    desc: 秘境门前半跪着一具石身守卫。它三百年没起身，也没让开过。
+    level_min: 14
+    level_max: 15
+    trigger_level: 14
+    region_id: palace_secret
+    prereq: [quest_14]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: mijing_shouwei, count: 1, group: main}
+    rewards:
+      exp: 16000
+      stones: 800
+      items:
+        - {item_id: pifu_shi, qty: 1}
+        - {item_id: ling_ye, qty: 3}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 100
+      flags: [secret_realm_open]
+    unlock_next: [quest_16]
+
+  - id: quest_16
+    order: 16
+    volume: 2
+    title: 三层血战
+    desc: 三层尽头，一张没有五官的脸浮在石台上。它等你走近，才慢慢转过来。
+    level_min: 15
+    level_max: 16
+    trigger_level: 15
+    region_id: palace_secret
+    prereq: [quest_15]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: mijing_shouling, count: 1, group: main}
+    rewards:
+      exp: 20000
+      stones: 1200
+      items:
+        - {item_id: pifu_shi, qty: 2}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 150
+      flags: [secret_realm_cleared]
+    unlock_next: [quest_17]
+
+  - id: quest_17
+    order: 17
+    volume: 2
+    title: 同门之谊
+    desc: 有同门便有照应，也有账要算。无门无派者，只与自己的影子同行。
+    level_min: 16
+    level_max: 17
+    trigger_level: 16
+    region_id: qingyun_outer
+    prereq: [quest_16]
+    objective_rule: any_group
+    objectives:
+      - {type: complete_sect_quest, count: 3, group: sect}
+      - {type: sansxiu_encounter, count: 3, group: sansxiu}
+      - {type: enter_forbidden, land_id: gujing_jianyuan, count: 1, group: sansxiu}
+    rewards:
+      exp: 24000
+      stones: 1500
+      items:
+        - {item_id: jingxin_dan, qty: 1}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 200
+      flags: [sect_bond_done]
+    unlock_next: [quest_18]
+
+  - id: quest_18
+    order: 18
+    volume: 2
+    title: 执事之威
+    desc: 柳无咎笑时眼皮不抬。他说规矩是他定的，你听着就该点头。
+    level_min: 17
+    level_max: 18
+    trigger_level: 17
+    region_id: qingyun_outer
+    prereq: [quest_17]
+    objective_rule: all
+    objectives:
+      - {type: kill, enemy_id: liu_wujiu, count: 1, group: main}
+    rewards:
+      exp: 28000
+      stones: 2000
+      items:
+        - {item_id: po_jing_dan, qty: 1}
+        - {item_id: ling_ye, qty: 5}
+      equipments: []
+      techniques: []
+      attrs: {}
+      contribution: 300
+      flags: [volume2_boss_down]
+    unlock_next: [quest_19]
+
+  - id: quest_19
+    order: 19
+    volume: 2
+    title: 辟府九重
+    desc: 第九座府门开时，你听见体内有水声。九府尽开，此处已无路。
+    level_min: 18
+    level_max: 18
+    trigger_level: 18
+    region_id: palace_secret
+    prereq: [quest_18]
+    objective_rule: all
+    objectives:
+      - {type: reach_level, level: 18, group: main}
+    rewards:
+      exp: 30000
+      stones: 3000
+      items: []
+      equipments: []
+      techniques: []
+      attrs: {bon: 2}
+      contribution: 400
+      flags: [volume2_cleared, mvp_ceiling_reached]
+    unlock_next: []
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) quests 恰 19 条（卷一 10 + 卷二 9）；order 连续 1–19；
+#   2) prereq 引用的 id 必须存在且 order 更小；unlock_next 必须能被
+#      prereq 反向推出（链条闭合，quest_19 的 unlock_next 为空）；
+#   3) 目标类型覆盖 13 种：talk/cultivate/kill/collect/deliver/reach_level/
+#      breakthrough/join_sect/choose_direction/complete_sect_quest/
+#      sansxiu_encounter/enter_forbidden/event_choice；
+#   4) kill.enemy_id ∈ enemies.yaml；collect/deliver.item_id ∈ items.yaml；
+#      event_id ∈ events.yaml；land_id ∈ forbidden_lands.yaml；
+#      techniques ∈ techniques.yaml；equipments ∈ equipments.yaml；
+#   5) level_min/level_max 按 order 排序后满足 next.level_min ≤ prev.level_max + 1
+#      （并集覆盖 1–18 无空洞）。**相邻任务允许交界重叠**：10 个任务要覆盖
+#      卷一的 9 个等级，严格"无重叠"在算术上不可能，故校验口径取"无空洞"。

@@ -1,0 +1,190 @@
+# ============================================================
+# 《荒天纪》v1.5 · 装备（equipments.yaml）
+# ============================================================
+# 用途：6 槽位定义 + 7 档稀有度权重 + 主词条区间 + 11 条副词条池 +
+#       强化规则 + 11 个装备模板（模板 id 与既有 SEED_EQUIPMENT 一致）。
+# 生成规则：先按 slot 取模板 → 按稀有度权重抽档 → 按档位决定词条数 →
+#           主词条按槽位固定，副词条从 affix_pool 无放回抽 N 条。
+# 字段见各段注释。
+# ============================================================
+
+# ---------- 6 槽位 ----------
+slots:
+  - {id: weapon,    name: 武器（主手）, main_affix: atk,       main_values: {xia: 12, zhong: 24, shang: 40}, note: 刀剑枪鼎幡拳套}
+  - {id: armor,     name: 护甲（身）,   main_affix: def,       main_values: {xia: 8,  zhong: 16, shang: 28}, note: 轻甲重甲法袍}
+  - {id: helm,      name: 头冠,         main_affix: sen,       main_values: {xia: 6,  zhong: 12, shang: 20}, note: 冠盔面饰}
+  - {id: accessory, name: 饰品,         main_affix: luk,       main_values: {xia: 2,  zhong: 4,  shang: 7},  note: 玉佩戒指铃}
+  - {id: natal,     name: 本命法器,     main_affix: atk_spr,   main_values: {xia: 10, zhong: 20, shang: 34}, note: 唯一，可祭炼（MVP 仅展示）}
+  - {id: storage,   name: 储物戒,       main_affix: bag_slots, main_values: {xia: 10, zhong: 18, shang: 30}, note: 唯一，扩容背包}
+
+# ---------- 7 档稀有度（权重合计 10000bp） ----------
+rarity:
+  - {id: crude,    name: 粗劣, color: gray,   weight_bp: 3000, affix_count: 0, extra_special: 0, value_multiplier_bp: 6000}
+  - {id: common,   name: 普通, color: white,  weight_bp: 3500, affix_count: 1, extra_special: 0, value_multiplier_bp: 10000}
+  - {id: fine,     name: 精良, color: green,  weight_bp: 2000, affix_count: 2, extra_special: 0, value_multiplier_bp: 13000}
+  - {id: rare,     name: 稀有, color: blue,   weight_bp: 1000, affix_count: 3, extra_special: 0, value_multiplier_bp: 17000}
+  - {id: epic,     name: 史诗, color: purple, weight_bp: 400,  affix_count: 4, extra_special: 0, value_multiplier_bp: 22000}
+  - {id: legend,   name: 传说, color: orange, weight_bp: 90,   affix_count: 4, extra_special: 1, value_multiplier_bp: 30000}
+  - {id: myth,     name: 神话, color: red,    weight_bp: 10,   affix_count: 5, extra_special: 1, value_multiplier_bp: 40000}
+
+# ---------- 副词条池（11 条，权重合计 10000bp，同件装备不重复） ----------
+affix_pool:
+  - {id: str,     name: 力量,     min_pct: 3,  max_pct: 12, weight_bp: 1400}
+  - {id: con,     name: 体魄,     min_pct: 3,  max_pct: 12, weight_bp: 1400}
+  - {id: spr,     name: 灵力,     min_pct: 3,  max_pct: 12, weight_bp: 1400}
+  - {id: sen,     name: 神识,     min_pct: 3,  max_pct: 12, weight_bp: 1200}
+  - {id: agi,     name: 身法,     min_pct: 3,  max_pct: 12, weight_bp: 1200}
+  - {id: hp,      name: 气血上限, min_pct: 4,  max_pct: 15, weight_bp: 1200}
+  - {id: crit,    name: 暴击率,   min_pct: 1,  max_pct: 6,  weight_bp: 800}
+  - {id: crit_dmg,name: 暴击伤害, min_pct: 5,  max_pct: 25, weight_bp: 600}
+  - {id: pen,     name: 破防,     min_pct: 2,  max_pct: 10, weight_bp: 500}
+  - {id: cult,    name: 修炼速度, min_pct: 2,  max_pct: 8,  weight_bp: 200}
+  - {id: luk,     name: 气运,     min_pct: 1,  max_pct: 5,  weight_bp: 100}
+
+# ---------- 强化（MVP 上限 +5） ----------
+enhance:
+  max_level: 5
+  bonus_per_level_bp: 800          # 每级强化 = 基础主词条 × 8%（+5 = +40%）
+  success_base_bp: 10000
+  success_step_bp: 500             # 每级 −5%
+  success_min_bp: 2500             # 下限 25%
+  # 强化消耗：MVP 无"强化石"道具（items.yaml 只 15 条），折为纯灵石
+  cost_spirit_stone_per_level: 200
+  cost_formula: "200 × (当前强化等级 + 1)"
+  downgrade_on_fail: false         # +1..+5 失败不降级（任务书 §4.3 口径）
+  refine_enabled: false            # 精炼 MVP 不实现（R56 返回 501）
+
+# ---------- 装备模板（11 个，id 与 SEED_EQUIPMENT 完全一致） ----------
+templates:
+  - id: shanyue_dajian
+    name: 山岳大剑
+    tier: fan
+    sub_tier: xia
+    seed_sub_tier: 凡·精良
+    slot: weapon
+    rarity: fine
+    sect_id: null
+    base_price: 200
+    description: 剑身厚如门板，一挥可裂石。凡器精良。
+
+  - id: qingfeng_jian
+    name: 青锋剑
+    tier: fan
+    sub_tier: shang
+    seed_sub_tier: 凡·稀有
+    slot: weapon
+    rarity: rare
+    sect_id: qingyun_sword
+    base_price: 600
+    description: 青云剑宗外门弟子佩剑。锋薄，快。
+
+  - id: jiuyou_zhua
+    name: 九幽爪
+    tier: bao
+    sub_tier: zhong
+    seed_sub_tier: 宝·史诗
+    slot: weapon
+    rarity: epic
+    sect_id: youming_demon
+    base_price: 2500
+    description: 骨制四爪，握之觉冷。幽冥魔道之物。
+
+  - id: xuanbu_daopao
+    name: 玄布道袍
+    tier: fan
+    sub_tier: xia
+    seed_sub_tier: 凡·普通
+    slot: armor
+    rarity: common
+    sect_id: null
+    base_price: 100
+    description: 粗麻染玄，村里裁的。亦称"粗布衣"，创角与主线 #1 发放。
+
+  - id: xuantie_zhanjia
+    name: 玄铁战甲
+    tier: ling
+    sub_tier: zhong
+    seed_sub_tier: 灵·精良
+    slot: armor
+    rarity: fine
+    sect_id: null
+    base_price: 800
+    description: 玄铁九锻，重三十斤。压得住刀，压不住雷。
+
+  - id: lingshi_guan
+    name: 灵识冠
+    tier: ling
+    sub_tier: xia
+    seed_sub_tier: 灵·普通
+    slot: helm
+    rarity: common
+    sect_id: null
+    base_price: 800
+    description: 冠内刻细纹，戴之神识清明。
+
+  - id: fayuan_lingzhu
+    name: 法源灵珠
+    tier: ling
+    sub_tier: shang
+    seed_sub_tier: 灵·上品
+    slot: accessory
+    rarity: null
+    sect_id: wanfa_spell
+    base_price: 700
+    description: 珠中一点光不灭，养之愈久愈亮。
+
+  - id: huangshi_huwan
+    name: 荒石护腕
+    tier: bao
+    sub_tier: shang
+    seed_sub_tier: 宝·上品
+    slot: accessory
+    rarity: null
+    sect_id: dahuang_body
+    base_price: 1500
+    description: 荒石岭的石头磨成，戴久了与手腕同温。
+
+  - id: shennong_liandan_lu
+    name: 神农炼丹炉
+    tier: bao
+    sub_tier: zhong
+    seed_sub_tier: 宝·中品
+    slot: natal
+    rarity: epic
+    sect_id: taishang_pill
+    base_price: 2000
+    description: 三足小炉，炉底有旧火痕。太上丹鼎信物。
+
+  - id: yinhun_fan
+    name: 阴魂幡
+    tier: bao
+    sub_tier: zhong
+    seed_sub_tier: 宝·中品
+    slot: natal
+    rarity: epic
+    sect_id: youming_demon
+    base_price: 1500
+    description: 幡上阴气缠手，夜里有细响。
+
+  - id: yijie_chuwu_jie
+    name: 一阶储物戒
+    tier: fan
+    sub_tier: xia
+    seed_sub_tier: 凡·普通
+    slot: storage
+    rarity: common
+    sect_id: null
+    base_price: 500
+    description: 内有一方小空间，可多盛十格行囊。
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) slots 恰 6 条；rarity 恰 7 条且 weight_bp 合计 10000；
+#   2) affix_pool 恰 11 条且 weight_bp 合计 10000；
+#   3) templates 恰 11 条，id 与 SEED_EQUIPMENT 的 11 个完全一致；
+#   4) enhance.max_level = 5，bonus_per_level_bp = 800（R55）。
+# 偏离说明：
+#   a) 任务书要求 7 档稀有度权重 30/35/20/10/4/0.9/0.1（%），本表以 bp 整数
+#      表达为 3000/3500/2000/1000/400/90/10，避免 YAML 浮点误差；
+#   b) 原 §5.4 强化上限 +15 与"强化石"配方，MVP 按裁决改为 +5、纯灵石，
+#      seed_sub_tier 字段保留既有 DB 展示串（凡·精良 等）以免兑换页文案错位。

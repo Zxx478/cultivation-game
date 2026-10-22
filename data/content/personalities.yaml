@@ -1,0 +1,54 @@
+# ============================================================
+# 《荒天纪》v1.5 · 性格（personalities.yaml）
+# ============================================================
+# 用途：创角 5 选 1（character.personality，默认 zhongyong）。
+#       性格只做事件选项判定修正，不改属性、不改修炼。
+# 判定公式（§6.4）：
+#   成功率 = clamp( 选项基础值 40%–70%
+#                   + 属性修正
+#                   + 性格修正(本章 check_mod_bp)
+#                   + 气运 × 0.3%
+#                   + 因果修正 , 5%, 95% )
+# 字段：
+#   id                 性格枚举（DB 默认值必须能对上 zhongyong）
+#   name               上线名
+#   check_mod_bp       四类选项的判定修正（bp，正加成负减益）
+#                      hard=硬闯 / wits=智取 / talk=交涉 / retreat=退避
+#   option_preference  选项倾向（权重提示，供 UI 排序与随机小偏好；合计 100）
+#   desc               纯文本描述
+# ============================================================
+
+personalities:
+  - id: gu_ao
+    name: 孤傲
+    check_mod_bp: {hard: 800, wits: 0, talk: -500, retreat: 0}
+    option_preference: {hard: 55, wits: 20, talk: 10, retreat: 15}
+    desc: 不肯低头，也不肯绕路。硬闯之时，反倒多一分狠劲。
+
+  - id: wen_hou
+    name: 温厚
+    check_mod_bp: {hard: -500, wits: 0, talk: 800, retreat: 0}
+    option_preference: {hard: 15, wits: 25, talk: 45, retreat: 15}
+    desc: 说话慢，眼神软。旁人愿意多听你一句。
+
+  - id: jiao_xia
+    name: 狡黠
+    check_mod_bp: {hard: -500, wits: 800, talk: 0, retreat: 0}
+    option_preference: {hard: 10, wits: 55, talk: 25, retreat: 10}
+    desc: 眼珠一转，已有三条退路。从不与人正面相撞。
+
+  - id: feng_dian
+    name: 疯癫
+    check_mod_bp: {hard: 800, wits: -500, talk: 0, retreat: 0}
+    option_preference: {hard: 55, wits: 10, talk: 15, retreat: 20}
+    desc: 笑得毫无缘由。敢做的事，常人不敢想。
+
+  - id: zhongyong
+    name: 中庸
+    check_mod_bp: {hard: 0, wits: 0, talk: 0, retreat: 0}
+    option_preference: {hard: 25, wits: 25, talk: 25, retreat: 25}
+    desc: 不争不抢，进退有度。谁也不记得你，人人都容得你。
+
+# 校验断言：personalities 恰 5 条；id 必须包含 zhongyong（DB 默认值）；
+#          每个 check_mod_bp 的四类取值 ∈ {-500, 0, 800}（±8% / −5% / 无修正）。
+# 退避选项固定「必定成功、无奖励、耗时 +1 月」，不吃性格修正（保留 retreat 键以便后续扩展）。

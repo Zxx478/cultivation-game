@@ -1,0 +1,484 @@
+# ============================================================
+# 《荒天纪》v1.5 · 敌人（enemies.yaml）
+# ============================================================
+# 用途：杂兵 / 精英 / Boss 全量配置（16 条）。region 的 enemies 字段引用本表 id。
+# 字段：
+#   id                敌人枚举（战斗会话与掉落日志用），禁止改名
+#   name              上线名
+#   level             等级（与 region.level_range 对应）
+#   realm_index       所属大境序号（连战缩放与越阶封锁用）
+#   kind              minion 杂兵 | elite 精英 | boss 首领
+#   hp/atk/def/speed  基础数值（战斗引擎按连战惩罚倍率再放大）
+#   force_level_coef  战力系数（与既有 quest_config 的 boss.force_level_coef 对齐）
+#   skills            技能列表（power_pct 为倍率，effect 为附加）
+#   drops             掉落（rate_bp 为 bp 概率；item_id 必须在 items.yaml 存在）
+#   exp_reward        击杀修为
+#   stone_reward      击杀灵石
+#   desc              描述文案
+# ============================================================
+
+enemies:
+  - id: dushan_shanmao
+    name: 独眼山猫
+    level: 2
+    realm_index: 1
+    kind: minion
+    hp: 180
+    atk: 22
+    def: 8
+    speed: 12
+    force_level_coef: 1.0
+    skills:
+      - {name: 扑咬, power_pct: 110, mp_cost: 0, cooldown: 0, effect: 无}
+      - {name: 独眼凝视, power_pct: 80, mp_cost: 5, cooldown: 3, effect: 目标命中 −10%，1 回合}
+    drops:
+      - {item_id: zhixue_cao, rate_bp: 3000, qty: 1}
+      - {item_id: shou_gu, rate_bp: 4000, qty: 1}
+    exp_reward: 60
+    stone_reward: 5
+    desc: 只一只眼，反而看得更准。夜里叫声像小儿哭。
+
+  - id: huangyuan_lang
+    name: 荒原狼
+    level: 4
+    realm_index: 1
+    kind: minion
+    hp: 320
+    atk: 38
+    def: 14
+    speed: 16
+    force_level_coef: 1.0
+    skills:
+      - {name: 撕裂, power_pct: 120, mp_cost: 0, cooldown: 0, effect: 出血，2 回合每回合 −3% 气血}
+      - {name: 群嗥, power_pct: 0, mp_cost: 8, cooldown: 4, effect: 自身攻击 +10%，2 回合}
+    drops:
+      - {item_id: shou_gu, rate_bp: 6000, qty: 1}
+      - {item_id: zhixue_cao, rate_bp: 2000, qty: 1}
+    exp_reward: 120
+    stone_reward: 12
+    desc: 瘦得看得见肋骨。荒年里，它们也饿。
+
+  - id: shanye_tufei
+    name: 山野匪徒
+    level: 3
+    realm_index: 1
+    kind: elite
+    hp: 260
+    atk: 32
+    def: 12
+    speed: 14
+    force_level_coef: 1.0
+    skills:
+      - {name: 劈刀, power_pct: 130, mp_cost: 0, cooldown: 0, effect: 无}
+      - {name: 撒沙, power_pct: 60, mp_cost: 6, cooldown: 3, effect: 目标命中 −20%，1 回合}
+    drops:
+      - {item_id: shou_gu, rate_bp: 4000, qty: 1}
+      - {item_id: huiqi_san, rate_bp: 2500, qty: 1}
+    exp_reward: 100
+    stone_reward: 30
+    desc: 三人一伙，藏在药坡石后。见人有药锄，才出来。
+
+  - id: shougu_yaolang
+    name: 兽骨妖狼
+    level: 6
+    realm_index: 1
+    kind: elite
+    hp: 520
+    atk: 55
+    def: 22
+    speed: 20
+    force_level_coef: 1.1
+    skills:
+      - {name: 骨刺突袭, power_pct: 150, mp_cost: 10, cooldown: 3, effect: 破甲 20%}
+      - {name: 血食, power_pct: 0, mp_cost: 12, cooldown: 5, effect: 自身回 8% 气血}
+    drops:
+      - {item_id: shou_gu, rate_bp: 8000, qty: 2}
+      - {item_id: long_xue_cao, rate_bp: 1000, qty: 1}
+    exp_reward: 260
+    stone_reward: 40
+    desc: 背脊长出骨片，已算不得狼。咬了人便不再松口。
+
+  - id: shilian_kuilei
+    name: 试炼傀儡
+    level: 8
+    realm_index: 1
+    kind: elite
+    hp: 760
+    atk: 62
+    def: 40
+    speed: 10
+    force_level_coef: 1.0
+    skills:
+      - {name: 铁臂横扫, power_pct: 130, mp_cost: 0, cooldown: 0, effect: 无}
+      - {name: 试炼阵启, power_pct: 90, mp_cost: 20, cooldown: 4, effect: 自身防御 +20%，3 回合}
+    drops:
+      - {item_id: shou_gu, rate_bp: 5000, qty: 1}
+      - {item_id: pifu_shi, rate_bp: 500, qty: 1}
+    exp_reward: 400
+    stone_reward: 20
+    desc: 试剑台上立着三具。木胎铁皮，不痛，不休。
+
+  - id: dushan_shanmao_wang
+    name: 独眼山猫王
+    level: 9
+    realm_index: 1
+    kind: boss
+    hp: 1400
+    atk: 88
+    def: 34
+    speed: 22
+    force_level_coef: 1.3
+    skills:
+      - {name: 裂风爪, power_pct: 170, mp_cost: 15, cooldown: 3, effect: 破甲 25%}
+      - {name: 独眼摄魂, power_pct: 110, mp_cost: 20, cooldown: 4, effect: 目标 30% 概率眩晕 1 回合}
+    drops:
+      - {item_id: long_xue_cao, rate_bp: 10000, qty: 2}
+      - {item_id: shou_gu, rate_bp: 10000, qty: 4}
+      - {item_id: pifu_shi, rate_bp: 3000, qty: 1}
+    exp_reward: 1200
+    stone_reward: 200
+    desc: 卷一之末。山猫长了三年，眼里有了人的神情。
+
+  - id: shuaibai_jianling
+    name: 衰败剑灵
+    level: 9
+    realm_index: 1
+    kind: boss
+    hp: 1600
+    atk: 96
+    def: 40
+    speed: 30
+    force_level_coef: 1.2
+    skills:
+      - {name: 残剑一线, power_pct: 180, mp_cost: 20, cooldown: 2, effect: 必命中}
+      - {name: 剑冢怨气, power_pct: 120, mp_cost: 30, cooldown: 5, effect: 目标灵力上限 −15%，3 回合}
+    drops:
+      - {item_id: ling_ye, rate_bp: 5000, qty: 1}
+      - {item_id: long_xue_cao, rate_bp: 4000, qty: 1}
+    exp_reward: 1500
+    stone_reward: 300
+    desc: 古井剑渊首通之敌。一柄断了半截的剑，还在守着井口。
+
+  - id: gujing_jianpo
+    name: 古井剑魄
+    level: 10
+    realm_index: 2
+    kind: minion
+    hp: 900
+    atk: 70
+    def: 30
+    speed: 24
+    force_level_coef: 1.0
+    skills:
+      - {name: 井底寒气, power_pct: 140, mp_cost: 10, cooldown: 3, effect: 目标先手 −20%，2 回合}
+    drops:
+      - {item_id: ling_ye, rate_bp: 4000, qty: 1}
+    exp_reward: 500
+    stone_reward: 60
+    desc: 井壁上浮出的剑影，一击即散，散了又聚。
+
+  - id: caomu_yaoteng
+    name: 草木妖藤
+    level: 10
+    realm_index: 2
+    kind: minion
+    hp: 1100
+    atk: 62
+    def: 44
+    speed: 8
+    force_level_coef: 1.0
+    skills:
+      - {name: 缠缚, power_pct: 90, mp_cost: 10, cooldown: 3, effect: 目标 40% 概率 1 回合无法行动}
+      - {name: 汲取, power_pct: 70, mp_cost: 12, cooldown: 4, effect: 自身回 6% 气血}
+    drops:
+      - {item_id: zhixue_cao, rate_bp: 8000, qty: 2}
+      - {item_id: long_xue_cao, rate_bp: 3000, qty: 1}
+    exp_reward: 520
+    stone_reward: 60
+    desc: 藤上有刺，刺上有眼。草木缘渊里的东西，都长着一副等的模样。
+
+  - id: lingmai_shou
+    name: 灵脉兽
+    level: 11
+    realm_index: 2
+    kind: minion
+    hp: 1250
+    atk: 82
+    def: 38
+    speed: 26
+    force_level_coef: 1.0
+    skills:
+      - {name: 灵光冲, power_pct: 150, mp_cost: 15, cooldown: 2, effect: 无}
+      - {name: 地脉回气, power_pct: 0, mp_cost: 15, cooldown: 4, effect: 自身回 10% 灵力}
+    drops:
+      - {item_id: ling_ye, rate_bp: 6000, qty: 1}
+    exp_reward: 620
+    stone_reward: 80
+    desc: 生于灵脉石缝，饮水一般饮灵气。皮薄，性躁。
+
+  - id: waimen_dizi
+    name: 外门弟子
+    level: 12
+    realm_index: 2
+    kind: elite
+    hp: 1500
+    atk: 95
+    def: 52
+    speed: 30
+    force_level_coef: 1.1
+    skills:
+      - {name: 青云剑式, power_pct: 150, mp_cost: 15, cooldown: 2, effect: 破甲 15%}
+      - {name: 护身符, power_pct: 0, mp_cost: 20, cooldown: 5, effect: 自身受伤 −20%，2 回合}
+    drops:
+      - {item_id: pifu_shi, rate_bp: 2000, qty: 1}
+      - {item_id: ling_ye, rate_bp: 3000, qty: 1}
+    exp_reward: 800
+    stone_reward: 120
+    desc: 同门倾轧，比山中野兽伤人更狠。你也是外门。
+
+  - id: laoyaosou_fenshen
+    name: 老药叟分身
+    level: 12
+    realm_index: 2
+    kind: boss
+    hp: 2200
+    atk: 110
+    def: 60
+    speed: 28
+    force_level_coef: 1.5
+    skills:
+      - {name: 药毒二选, power_pct: 130, mp_cost: 20, cooldown: 3, effect: 50% 概率中毒（每回合 −4% 气血，3 回合）}
+      - {name: 草木反哺, power_pct: 0, mp_cost: 25, cooldown: 5, effect: 自身回 15% 气血}
+      - {name: 百炼丹烟, power_pct: 160, mp_cost: 30, cooldown: 6, effect: 目标命中 −25%，2 回合}
+    drops:
+      - {item_id: long_xue_cao, rate_bp: 10000, qty: 3}
+      - {item_id: ling_ye, rate_bp: 10000, qty: 2}
+    exp_reward: 1800
+    stone_reward: 500
+    desc: 草木缘渊首通之敌。一个背着药篓的老者，笑得很和气。
+
+  - id: mijing_shouwei
+    name: 秘境守卫
+    level: 14
+    realm_index: 2
+    kind: elite
+    hp: 1900
+    atk: 118
+    def: 66
+    speed: 30
+    force_level_coef: 1.2
+    skills:
+      - {name: 府门一戟, power_pct: 160, mp_cost: 20, cooldown: 3, effect: 破甲 20%}
+      - {name: 九府镇守, power_pct: 0, mp_cost: 30, cooldown: 5, effect: 自身防御 +30%，3 回合}
+    drops:
+      - {item_id: pifu_shi, rate_bp: 4000, qty: 1}
+      - {item_id: ling_ye, rate_bp: 3000, qty: 1}
+    exp_reward: 1000
+    stone_reward: 200
+    desc: 石身石铠，半跪在秘境门前三百年。它只拦人，不问话。
+
+  - id: yinxiu_cike
+    name: 隐修刺客
+    level: 15
+    realm_index: 2
+    kind: elite
+    hp: 1700
+    atk: 140
+    def: 50
+    speed: 42
+    force_level_coef: 1.2
+    skills:
+      - {name: 隐刺, power_pct: 200, mp_cost: 25, cooldown: 4, effect: 必暴击}
+      - {name: 匿形, power_pct: 0, mp_cost: 20, cooldown: 4, effect: 自身闪避 +30%，2 回合}
+    drops:
+      - {item_id: juling_fu, rate_bp: 4000, qty: 1}
+      - {item_id: ling_ye, rate_bp: 3000, qty: 1}
+    exp_reward: 1100
+    stone_reward: 220
+    desc: 秘境里的第三方。他不与你争宝，只等你力竭。
+
+  - id: mijing_shouling
+    name: 秘境守灵
+    level: 16
+    realm_index: 2
+    kind: boss
+    hp: 3200
+    atk: 150
+    def: 80
+    speed: 34
+    force_level_coef: 1.4
+    skills:
+      - {name: 三层血战, power_pct: 190, mp_cost: 25, cooldown: 3, effect: 破甲 25%}
+      - {name: 守灵之怒, power_pct: 0, mp_cost: 40, cooldown: 6, effect: 自身攻击 +30%，3 回合（每场 1 次）}
+      - {name: 阴风蚀骨, power_pct: 140, mp_cost: 30, cooldown: 5, effect: 目标防御 −20%，3 回合}
+    drops:
+      - {item_id: pifu_shi, rate_bp: 10000, qty: 2}
+      - {item_id: ling_ye, rate_bp: 10000, qty: 3}
+    exp_reward: 2400
+    stone_reward: 800
+    desc: 秘境三层尽头。一张没有五官的脸，浮在石台上。
+
+  - id: liu_wujiu
+    name: 柳无咎
+    level: 18
+    realm_index: 2
+    kind: boss
+    hp: 4200
+    atk: 175
+    def: 92
+    speed: 38
+    force_level_coef: 1.5
+    skills:
+      - {name: 执事剑令, power_pct: 200, mp_cost: 30, cooldown: 3, effect: 破甲 30%}
+      - {name: 外门规条, power_pct: 130, mp_cost: 25, cooldown: 4, effect: 目标灵力上限 −20%，3 回合}
+      - {name: 一府之威, power_pct: 0, mp_cost: 45, cooldown: 7, effect: 自身攻击 +35%，全属性抗性 +10%，3 回合}
+    drops:
+      - {item_id: pifu_shi, rate_bp: 10000, qty: 2}
+      - {item_id: ling_ye, rate_bp: 10000, qty: 3}
+      - {item_id: po_jing_dan, rate_bp: 3000, qty: 1}
+    exp_reward: 3200
+    stone_reward: 1500
+    desc: 卷二之末。青云宗外门执事，笑时眼皮不抬。
+
+  # ---- 以下 7 个为禁地 Boss 占位（V1.1 开放对应禁地后启用，MVP 不可达） ----
+  - id: jiuyou_shizhe
+    name: 九幽使者
+    level: 19
+    realm_index: 3
+    kind: boss
+    hp: 6000
+    atk: 220
+    def: 120
+    speed: 45
+    force_level_coef: 1.4
+    placeholder: true
+    skills:
+      - {name: 幽言, power_pct: 200, mp_cost: 40, cooldown: 3, effect: 目标道心 −3}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 5}
+    exp_reward: 6000
+    stone_reward: 2000
+    desc: 九幽低语首通之敌。它不开口，话直接落在你心里。
+
+  - id: wanjian_wumingshi
+    name: 万剑无名氏
+    level: 28
+    realm_index: 4
+    kind: boss
+    hp: 15000
+    atk: 420
+    def: 240
+    speed: 60
+    force_level_coef: 1.5
+    placeholder: true
+    skills:
+      - {name: 无名一剑, power_pct: 260, mp_cost: 60, cooldown: 4, effect: 破甲 30%}
+    drops:
+      - {item_id: pifu_shi, rate_bp: 10000, qty: 5}
+    exp_reward: 20000
+    stone_reward: 8000
+    desc: 万剑遗冢首通之敌。碑上无名，剑上有名。
+
+  - id: leimu
+    name: 雷母
+    level: 37
+    realm_index: 5
+    kind: boss
+    hp: 40000
+    atk: 800
+    def: 420
+    speed: 70
+    force_level_coef: 1.6
+    placeholder: true
+    skills:
+      - {name: 北荒落雷, power_pct: 320, mp_cost: 90, cooldown: 5, effect: 30% 麻痹 1 回合}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 10}
+    exp_reward: 60000
+    stone_reward: 25000
+    desc: 北荒雷域首通之敌。雷声比她先到。
+
+  - id: heian_jieling
+    name: 黑暗劫灵
+    level: 55
+    realm_index: 7
+    kind: boss
+    hp: 120000
+    atk: 2200
+    def: 1100
+    speed: 90
+    force_level_coef: 1.7
+    placeholder: true
+    skills:
+      - {name: 劫光, power_pct: 380, mp_cost: 150, cooldown: 6, effect: 目标灵力上限 −25%}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 20}
+    exp_reward: 200000
+    stone_reward: 80000
+    desc: 黑暗劫冢首通之敌。它由所有死在冢里的人拼成。
+
+  - id: shengyu_shoumuzhe
+    name: 圣域守墓者
+    level: 82
+    realm_index: 10
+    kind: boss
+    hp: 600000
+    atk: 12000
+    def: 6000
+    speed: 110
+    force_level_coef: 1.8
+    placeholder: true
+    skills:
+      - {name: 无相偷法, power_pct: 420, mp_cost: 300, cooldown: 8, effect: 偷学我方最近一次术法}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 50}
+    exp_reward: 1200000
+    stone_reward: 400000
+    desc: 圣域渊谷首通之敌。守了三千年，记不住自己在守什么。
+
+  - id: diguan_yinghun
+    name: 帝关英魂
+    level: 91
+    realm_index: 11
+    kind: boss
+    hp: 2000000
+    atk: 40000
+    def: 20000
+    speed: 130
+    force_level_coef: 1.9
+    placeholder: true
+    skills:
+      - {name: 封天劫光, power_pct: 500, mp_cost: 500, cooldown: 12, effect: 封锁敌方行动 2 回合}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 100}
+    exp_reward: 4000000
+    stone_reward: 1500000
+    desc: 帝关凝血首通之敌。历代准帝的兵，最后都听它的。
+
+  - id: xianmen_shouhu
+    name: 仙门守护
+    level: 100
+    realm_index: 12
+    kind: boss
+    hp: 8000000
+    atk: 150000
+    def: 80000
+    speed: 160
+    force_level_coef: 2.0
+    placeholder: true
+    skills:
+      - {name: 仙台一线, power_pct: 600, mp_cost: 800, cooldown: 15, effect: 无视减伤}
+    drops:
+      - {item_id: ling_ye, rate_bp: 10000, qty: 200}
+    exp_reward: 10000000
+    stone_reward: 5000000
+    desc: 仙门幻境首通之敌。它守的不是门，是"门后无人"这件事。
+
+# ------------------------------------------------------------
+# 校验断言：enemies ≥ 12（本表 23，含 7 个禁地 Boss 占位）；
+#           kind ∈ {minion,elite,boss}；
+#           drops 的 item_id 必须全部存在于 items.yaml；
+#           衰败剑灵 force_level_coef=1.2、老药叟分身=1.5（与
+#           data/content/sect/quest_config.yaml 的 boss 系数一致）。
+#           带 placeholder: true 的 7 个 Boss 仅服务于禁用状态的禁地，
+#           MVP 流程不会生成战斗会话。

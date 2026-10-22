@@ -1,0 +1,30 @@
+# ============================================================
+# 《荒天纪》v1.5 · 资质（talents.yaml）
+# ============================================================
+# 用途：创角时随机 1–10 品资质（character.talent），决定修炼速度的
+#       「资质系数」。系数公式：coef = 1 + (品级 - 5) × 0.06。
+#       例：3 品 → 0.88；5 品 → 1.00；9 品 → 1.24。
+# 字段：
+#   grade            品级 1–10（唯一键）
+#   name             品级名（UI 展示）
+#   coef_bp          资质系数 × 10000（进入 ExpRate 乘算）
+#   roll_weight_bp   创角抽取权重（bp，合计 10000，MVP 采用均匀分布）
+#   desc             纯文本描述
+# ============================================================
+
+formula: "coef_bp = 10000 + (grade - 5) * 600"
+
+talents:
+  - {grade: 1, name: 顽石, coef_bp: 7600, roll_weight_bp: 1000, desc: 心如顽石，灵气过身而不留。}
+  - {grade: 2, name: 愚钝, coef_bp: 8200, roll_weight_bp: 1000, desc: 一句口诀，旁人三遍，你十遍。}
+  - {grade: 3, name: 平庸, coef_bp: 8800, roll_weight_bp: 1000, desc: 中人之姿，勤能补之。}
+  - {grade: 4, name: 尚可, coef_bp: 9400, roll_weight_bp: 1000, desc: 稍胜村童，已可入山门做个杂役。}
+  - {grade: 5, name: 寻常, coef_bp: 10000, roll_weight_bp: 1000, desc: 无甚出奇，胜在稳当。}
+  - {grade: 6, name: 灵秀, coef_bp: 10600, roll_weight_bp: 1000, desc: 记性极好，一诀诵过便不忘。}
+  - {grade: 7, name: 聪敏, coef_bp: 11200, roll_weight_bp: 1000, desc: 举一而反三，授课老者常多看你两眼。}
+  - {grade: 8, name: 天资, coef_bp: 11800, roll_weight_bp: 1000, desc: 别人打坐一日，你半个时辰便得。}
+  - {grade: 9, name: 绝伦, coef_bp: 12400, roll_weight_bp: 1000, desc: 山中修行十载，可抵旁人三十年。}
+  - {grade: 10, name: 天骄, coef_bp: 13000, roll_weight_bp: 1000, desc: 万里挑一。此种资质，落在荒村是祸。}
+
+# 校验断言：talents 恰 10 条；grade 覆盖 1–10；roll_weight_bp 合计 10000；
+#          coef_bp 必须严格等于公式值（防手改错位）。

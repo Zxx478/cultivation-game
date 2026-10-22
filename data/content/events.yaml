@@ -1,0 +1,770 @@
+# ============================================================
+# 《荒天纪》v1.5 · 事件（events.yaml）
+# ============================================================
+# 用途：20 条可触发事件。行动结算后按 game.yaml.event.trigger_bp 判定，
+#       命中后在「区域 × 境界 × 30 月未出」的候选池中按权重抽 1 条。
+# 硬规则：每条恰 2–4 个选项；**每个选项至少 1 项负面代价**
+#         （时间 / 气血 / 因果 / 属性任一为负）。
+# 字段：
+#   id          事件枚举，禁止改名（主线 #6 会强制触发 village_cry）
+#   title       标题
+#   body        正文（≤200 字，半文半白，单句 ≤25 字）
+#   category    resource|npc|combat|fortune|trap|karma
+#   weight      事件权重（同类别内相对值；类别权重见 game.yaml.event.category_weights_bp）
+#   region_ids  可触发区域
+#   level_min/level_max  可触发等级区间
+#   forced_by_quest  被主线强制触发时填写任务 id（不走随机池）
+#   choices     选项数组
+#     id / label        选项枚举与文案
+#     risk              风险标记 low|mid|high（UI 只显示标记，不显示成功率）
+#     check             判定（attr 取 str|con|spr|sen|wis|agi|luk；difficulty_bp 为基础成功率）
+#                       null 表示必定成功（如退避）
+#     time_cost_days    固定耗时（游戏日），0 表示不额外耗时
+#     success_effects / fail_effects  效果数组，元素 {type, ...}
+#       可用 type：cultivation / spirit_stone / item{item_id,qty} /
+#                  item_loss{item_id,qty}（扣道具）/ karma /
+#                  hp_pct / mp_pct / attr{key,value} / status{key} /
+#                  dao_heart{value} / favor{npc_id,value} /
+#                  technique{tech_id} / flag{key}
+# ============================================================
+
+events:
+  # ---------------- 因果业报类（5） ----------------
+  - id: village_cry
+    title: 村里的哭声
+    category: karma
+    weight: 5
+    region_ids: [duanhuai_village]
+    level_min: 4
+    level_max: 9
+    forced_by_quest: quest_06
+    body: >-
+      夜里有人在村口哭。一个孩子被荒兽堵在柴房里。火光只照亮半面墙。
+      屋里的人都在等。等谁先出去，等谁先开口。
+    choices:
+      - id: save
+        label: 循声而去
+        risk: high
+        check: {attr: str, difficulty_bp: 5500}
+        time_cost_days: 30
+        success_effects:
+          - {type: karma, value: 50}
+          - {type: attr, key: luk, value: 2}
+          - {type: cultivation, value: 300}
+        fail_effects:
+          - {type: karma, value: 30}
+          - {type: hp_pct, value: -40}
+          - {type: status, key: injured}
+      - id: ignore
+        label: 掩门不问
+        risk: low
+        check: null
+        time_cost_days: 0
+        success_effects:
+          - {type: spirit_stone, value: 200}
+          - {type: karma, value: -30}
+        fail_effects:
+          - {type: karma, value: -30}
+
+  - id: jiu_ming_zhi_en
+    title: 旧日之恩
+    category: karma
+    weight: 5
+    region_ids: [duanhuai_village, herb_slope, qingyun_outer]
+    level_min: 1
+    level_max: 18
+    body: >-
+      一个妇人在路边拦你。她怀里抱着一只空药碗，碗底还有湿痕。
+      她说她认得你。说她孩子那年活下来了，如今已能上山砍柴。
+    choices:
+      - id: accept_gift
+        label: 收下她的谢礼
+        risk: low
+        check: null
+        time_cost_days: 15
+        success_effects:
+          - {type: item, item_id: huiqi_san, qty: 2}
+          - {type: item, item_id: zhixue_cao, qty: 5}
+          - {type: karma, value: 10}
+        fail_effects:
+          - {type: karma, value: 5}
+
+      - id: refuse_and_give
+        label: 反赠她一枚灵石
+        risk: low
+        check: null
+        time_cost_days: 15
+        success_effects:
+          - {type: karma, value: 30}
+          - {type: spirit_stone, value: -20}
+        fail_effects:
+          - {type: spirit_stone, value: -20}
+
+  - id: xue_zhai_hui_xiang
+    title: 血债回响
+    category: karma
+    weight: 5
+    region_ids: [qingyun_outer, spirit_creek, five_cities]
+    level_min: 10
+    level_max: 54
+    body: >-
+      客栈外站了三个人，衣上别着白布。他们说，三年前你在荒村口走得太快。
+      其中一个抬起手，掌心有一道旧疤。你认得那道疤。
+    choices:
+      - id: pay
+        label: 赔灵石了事
+        risk: low
+        check: {attr: luk, difficulty_bp: 4500}
+        time_cost_days: 15
+        success_effects:
+          - {type: spirit_stone, value: -300}
+          - {type: karma, value: 20}
+        fail_effects:
+          - {type: spirit_stone, value: -300}
+          - {type: karma, value: -10}
+      - id: fight
+        label: 拔剑
+        risk: high
+        check: {attr: str, difficulty_bp: 5000}
+        time_cost_days: 30
+        success_effects:
+          - {type: karma, value: -30}
+          - {type: spirit_stone, value: 250}
+        fail_effects:
+          - {type: hp_pct, value: -50}
+          - {type: status, key: injured}
+          - {type: karma, value: -50}
+      - id: flee
+        label: 连夜出城
+        risk: mid
+        check: {attr: agi, difficulty_bp: 6000}
+        time_cost_days: 45
+        success_effects:
+          - {type: cultivation, value: 100}
+        fail_effects:
+          - {type: karma, value: -20}
+          - {type: hp_pct, value: -25}
+
+  # ---------------- 修炼资源类（30） ----------------
+  - id: ling_mai_xian_shi
+    title: 灵脉现世
+    category: resource
+    weight: 30
+    region_ids: [spirit_creek, qingyun_outer, ancient_ruin_1]
+    level_min: 10
+    level_max: 27
+    body: >-
+      溪底忽然冒出白光，水一边流一边退。石缝里涌出的气，凉得像刀。
+      半个时辰后就会散。你要不要下去。
+    choices:
+      - id: dive
+        label: 潜入石缝
+        risk: mid
+        check: {attr: con, difficulty_bp: 5500}
+        time_cost_days: 15
+        success_effects:
+          - {type: item, item_id: ling_ye, qty: 3}
+          - {type: cultivation, value: 600}
+        fail_effects:
+          - {type: hp_pct, value: -30}
+          - {type: item, item_id: ling_ye, qty: 1}
+      - id: sit_absorb
+        label: 岸边打坐
+        risk: low
+        check: null
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 900}
+          - {type: hp_pct, value: -5}
+        fail_effects:
+          - {type: hp_pct, value: -5}
+      - id: leave
+        label: 记下位置，先走
+        risk: low
+        check: null
+        time_cost_days: 5
+        success_effects:
+          - {type: attr, key: wis, value: 1}
+          - {type: hp_pct, value: -3}
+        fail_effects: []
+
+  - id: tian_jiang_ling_yu
+    title: 天降灵雨
+    category: resource
+    weight: 30
+    region_ids: [back_hill, herb_slope, spirit_creek]
+    level_min: 1
+    level_max: 18
+    body: >-
+      云压得很低，雨落下来是斜的。雨点打在石上不散，聚成一颗颗小珠子。
+      老人说这叫灵雨。淋久了，骨头会轻。
+    choices:
+      - id: stand
+        label: 立在雨中
+        risk: mid
+        check: {attr: con, difficulty_bp: 6000}
+        time_cost_days: 20
+        success_effects:
+          - {type: cultivation, value: 800}
+          - {type: attr, key: con, value: 1}
+        fail_effects:
+          - {type: hp_pct, value: -20}
+          - {type: status, key: injured}
+      - id: collect
+        label: 用器物接雨
+        risk: low
+        check: null
+        time_cost_days: 15
+        success_effects:
+          - {type: item, item_id: ling_ye, qty: 2}
+          - {type: hp_pct, value: -5}
+        fail_effects:
+          - {type: hp_pct, value: -5}
+
+  - id: ku_shu_yu_xia
+    title: 枯树玉匣
+    category: resource
+    weight: 30
+    region_ids: [back_hill, ancient_ruin_1, ancient_ruin_2]
+    level_min: 2
+    level_max: 27
+    body: >-
+      枯树心是空的，洞里放着一只玉匣。匣面没有锁，只有一层灰。
+      手指按上去，灰陷下去一个浅浅的印子。像有人刚刚才按过。
+    choices:
+      - id: open
+        label: 拂灰开匣
+        risk: mid
+        check: {attr: sen, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: spirit_stone, value: 300}
+          - {type: item, item_id: juqi_dan, qty: 1}
+        fail_effects:
+          - {type: hp_pct, value: -25}
+          - {type: status, key: poisoned}
+      - id: leave
+        label: 原样放回
+        risk: low
+        check: null
+        time_cost_days: 5
+        success_effects:
+          - {type: attr, key: mnd, value: 2}
+          - {type: cultivation, value: 50}
+        fail_effects: []
+
+  # ---------------- NPC 交互类（25） ----------------
+  - id: lao_qiao_fu
+    title: 老樵夫求助
+    category: npc
+    weight: 25
+    region_ids: [back_hill, herb_slope]
+    level_min: 1
+    level_max: 18
+    body: >-
+      老樵夫坐在石上，脚踝肿得发亮。柴捆散了一地，绳子断成两截。
+      他说山下有狼。他说他儿子明日要成亲。
+    choices:
+      - id: carry
+        label: 背他下山
+        risk: low
+        check: null
+        time_cost_days: 15
+        success_effects:
+          - {type: karma, value: 20}
+          - {type: item, item_id: shou_gu, qty: 2}
+        fail_effects:
+          - {type: hp_pct, value: -10}
+      - id: cut_rope
+        label: 替他续好绳子
+        risk: low
+        check: {attr: agi, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: karma, value: 10}
+          - {type: attr, key: wis, value: 1}
+        fail_effects:
+          - {type: karma, value: -5}
+          - {type: hp_pct, value: -5}
+
+  - id: jian_ke_tiao_xin
+    title: 剑客挑衅
+    category: npc
+    weight: 25
+    region_ids: [qingyun_outer, five_cities, spirit_creek]
+    level_min: 9
+    level_max: 54
+    body: >-
+      白衣剑客拦住去路，说你的步子太稳，不像散修。
+      他把剑横在身前，剑尖向下，是让招的意思。
+    choices:
+      - id: accept
+        label: 接他一剑
+        risk: high
+        check: {attr: agi, difficulty_bp: 5000}
+        time_cost_days: 20
+        success_effects:
+          - {type: cultivation, value: 500}
+          - {type: attr, key: agi, value: 2}
+        fail_effects:
+          - {type: hp_pct, value: -35}
+          - {type: status, key: injured}
+      - id: talk
+        label: 抱拳请教
+        risk: low
+        check: {attr: wis, difficulty_bp: 5500}
+        time_cost_days: 15
+        success_effects:
+          - {type: attr, key: wis, value: 2}
+          - {type: favor, npc_id: baiyi_jianke, value: 10}
+        fail_effects:
+          - {type: favor, npc_id: baiyi_jianke, value: -15}
+          - {type: attr, key: mnd, value: -1}
+
+  - id: shao_nv_zeng_li
+    title: 少女赠礼
+    category: npc
+    weight: 25
+    region_ids: [duanhuai_village, herb_slope, qingyun_outer]
+    level_min: 1
+    level_max: 18
+    body: >-
+      少女把布包塞进你手里就跑了。包里是三个还热的饼，和一枚小小的骨哨。
+      饼上印着她家的纹。你记得那户人家，前年被荒兽踏平了。
+    choices:
+      - id: take
+        label: 收下，追上去道谢
+        risk: low
+        check: null
+        time_cost_days: 10
+        success_effects:
+          - {type: karma, value: 15}
+          - {type: item, item_id: huiqi_san, qty: 1}
+        fail_effects:
+          - {type: karma, value: 5}
+      - id: leave_coin
+        label: 收下，留灵石在门缝
+        risk: low
+        check: null
+        time_cost_days: 5
+        success_effects:
+          - {type: karma, value: 10}
+          - {type: spirit_stone, value: -50}
+        fail_effects:
+          - {type: spirit_stone, value: -50}
+
+  - id: yao_sou_du_wan
+    title: 药叟毒丸
+    category: npc
+    weight: 25
+    region_ids: [herb_slope, spirit_creek, palace_secret]
+    level_min: 3
+    level_max: 18
+    body: >-
+      背药篓的老者摊开手掌，两枚药丸一模一样。
+      一枚能清心，一枚能封喉。他说：选吧，我忙着赶路。
+    choices:
+      - id: left
+        label: 取左
+        risk: high
+        check: {attr: luk, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: technique, tech_id: caomu_xin_jing}
+          - {type: cultivation, value: 400}
+        fail_effects:
+          - {type: hp_pct, value: -30}
+          - {type: status, key: poisoned}
+      - id: right
+        label: 取右
+        risk: high
+        check: {attr: luk, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: item, item_id: jingxin_dan, qty: 1}
+          - {type: cultivation, value: 200}
+        fail_effects:
+          - {type: hp_pct, value: -30}
+          - {type: status, key: poisoned}
+      - id: refuse
+        label: 都不取，作揖退开
+        risk: low
+        check: null
+        time_cost_days: 5
+        success_effects:
+          - {type: attr, key: mnd, value: 1}
+          - {type: hp_pct, value: -3}
+        fail_effects:
+          - {type: hp_pct, value: -3}
+
+  # ---------------- 战斗遭遇类（20） ----------------
+  - id: huang_shou_lan_lu
+    title: 荒兽拦路
+    category: combat
+    weight: 20
+    region_ids: [back_hill, herb_slope, palace_secret]
+    level_min: 2
+    level_max: 18
+    body: >-
+      草叶一动，一头荒兽挡在道上。它左前腿有伤，站得不太稳。
+      它没有退。让路的从来不是它。
+    choices:
+      - id: fight
+        label: 正面搏杀
+        risk: high
+        check: {attr: str, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: cultivation, value: 400}
+          - {type: item, item_id: shou_gu, qty: 3}
+        fail_effects:
+          - {type: hp_pct, value: -45}
+          - {type: status, key: injured}
+      - id: circle
+        label: 绕道而行
+        risk: low
+        check: {attr: agi, difficulty_bp: 6000}
+        time_cost_days: 20
+        success_effects:
+          - {type: cultivation, value: 50}
+          - {type: hp_pct, value: -5}
+        fail_effects:
+          - {type: hp_pct, value: -20}
+          - {type: karma, value: -5}
+
+  - id: jie_fei_jie_dao
+    title: 劫匪截道
+    category: combat
+    weight: 20
+    region_ids: [herb_slope, north_waste, shi_pass]
+    level_min: 3
+    level_max: 45
+    body: >-
+      四个人从石头后出来，一人握刀，三人握棍。领头的先看你的手，再看你的腰。
+      他说：路钱。说得像在讨一杯水。
+    choices:
+      - id: pay
+        label: 交灵石
+        risk: low
+        check: null
+        time_cost_days: 5
+        success_effects:
+          - {type: spirit_stone, value: -100}
+        fail_effects:
+          - {type: spirit_stone, value: -100}
+      - id: fight
+        label: 动手
+        risk: high
+        check: {attr: str, difficulty_bp: 4500}
+        time_cost_days: 15
+        success_effects:
+          - {type: spirit_stone, value: 250}
+          - {type: karma, value: -10}
+        fail_effects:
+          - {type: hp_pct, value: -40}
+          - {type: spirit_stone, value: -150}
+      - id: bluff
+        label: 只说一句话
+        risk: mid
+        check: {attr: sen, difficulty_bp: 5500}
+        time_cost_days: 10
+        success_effects:
+          - {type: karma, value: 5}
+          - {type: cultivation, value: 150}
+        fail_effects:
+          - {type: hp_pct, value: -25}
+          - {type: spirit_stone, value: -100}
+
+  - id: yuan_jia_xun_chou
+    title: 冤家寻仇
+    category: combat
+    weight: 20
+    region_ids: [qingyun_outer, spirit_creek, five_cities]
+    level_min: 10
+    level_max: 54
+    body: >-
+      石阶下有人叫你名字。你回头，看见一张被削去一半的脸。
+      他讲话漏风，但每个字你都听清了。
+    choices:
+      - id: face
+        label: 迎上去
+        risk: high
+        check: {attr: str, difficulty_bp: 5000}
+        time_cost_days: 20
+        success_effects:
+          - {type: cultivation, value: 800}
+          - {type: karma, value: -20}
+        fail_effects:
+          - {type: hp_pct, value: -55}
+          - {type: status, key: injured}
+          - {type: dao_heart, value: -3}
+      - id: run
+        label: 转身入林
+        risk: mid
+        check: {attr: agi, difficulty_bp: 5500}
+        time_cost_days: 30
+        success_effects:
+          - {type: hp_pct, value: -10}
+        fail_effects:
+          - {type: hp_pct, value: -35}
+          - {type: attr, key: mnd, value: -2}
+
+  # ---------------- 机缘奇物类（12） ----------------
+  - id: can_po_gong_fa_ye
+    title: 残破功法页
+    category: fortune
+    weight: 12
+    region_ids: [ancient_ruin_1, ancient_ruin_2, sect_forbidden]
+    level_min: 19
+    level_max: 36
+    body: >-
+      石缝里夹着一页纸，边角烧焦了。上面只剩十七个字，字缝里还有血。
+      你认得其中三个。这三个字凑不成一句。
+    choices:
+      - id: study
+        label: 就地参悟
+        risk: mid
+        check: {attr: wis, difficulty_bp: 5000}
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 1200}
+          - {type: attr, key: wis, value: 2}
+        fail_effects:
+          - {type: hp_pct, value: -20}
+          - {type: status, key: heart_crack}
+      - id: sell
+        label: 送去坊市
+        risk: low
+        check: null
+        time_cost_days: 15
+        success_effects:
+          - {type: spirit_stone, value: 800}
+        fail_effects:
+          - {type: spirit_stone, value: 200}
+
+  - id: gu_jing_qing_ming
+    title: 古井青鸣
+    category: fortune
+    weight: 12
+    region_ids: [back_hill, ancient_ruin_1, spirit_creek]
+    level_min: 2
+    level_max: 27
+    body: >-
+      井里传出剑鸣，一声，很长。井口没有绳，也没有水。
+      你俯身往下看，看见的不是自己。
+    choices:
+      - id: descend
+        label: 攀井而下
+        risk: high
+        check: {attr: con, difficulty_bp: 4500}
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 1000}
+          - {type: attr, key: sen, value: 2}
+        fail_effects:
+          - {type: hp_pct, value: -45}
+          - {type: attr, key: mnd, value: -3}
+      - id: offer
+        label: 投一枚灵石
+        risk: low
+        check: null
+        time_cost_days: 10
+        success_effects:
+          - {type: spirit_stone, value: -50}
+          - {type: cultivation, value: 300}
+        fail_effects:
+          - {type: spirit_stone, value: -50}
+
+  - id: yi_xiang_gan_wu
+    title: 异象感悟
+    category: fortune
+    weight: 12
+    region_ids: [back_hill, spirit_creek, holy_outskirt, time_secret]
+    level_min: 1
+    level_max: 72
+    body: >-
+      天上云聚成一片莲。你抬头看，看得太久，眼里的东西就变了。
+      那一刻你觉得，天地是活的。
+    choices:
+      - id: grasp
+        label: 强行捕捉
+        risk: mid
+        check: {attr: sen, difficulty_bp: 4500}
+        time_cost_days: 20
+        success_effects:
+          - {type: attr, key: wis, value: 3}
+          - {type: cultivation, value: 700}
+        fail_effects:
+          - {type: hp_pct, value: -25}
+          - {type: status, key: heart_crack}
+      - id: watch
+        label: 只是看
+        risk: low
+        check: null
+        time_cost_days: 10
+        success_effects:
+          - {type: attr, key: mnd, value: 3}
+          - {type: cultivation, value: 200}
+        fail_effects: []
+
+  # ---------------- 危险陷阱类（8） ----------------
+  - id: du_zhang_mi_lu
+    title: 毒瘴迷路
+    category: trap
+    weight: 8
+    region_ids: [herb_slope, shi_pass, dark_abyss]
+    level_min: 3
+    level_max: 63
+    body: >-
+      雾从地面升起来，颜色比雾更沉。走了半个时辰，你又看见了自己的脚印。
+      脚印是新的。
+    choices:
+      - id: hold_breath
+        label: 屏息硬闯
+        risk: high
+        check: {attr: con, difficulty_bp: 4500}
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 300}
+          - {type: hp_pct, value: -10}
+        fail_effects:
+          - {type: hp_pct, value: -50}
+          - {type: status, key: poisoned}
+      - id: climb
+        label: 攀高辨向
+        risk: mid
+        check: {attr: agi, difficulty_bp: 5500}
+        time_cost_days: 20
+        success_effects:
+          - {type: attr, key: agi, value: 1}
+          - {type: hp_pct, value: -5}
+        fail_effects:
+          - {type: hp_pct, value: -30}
+          - {type: item_loss, item_id: zhixue_cao, qty: 2}
+      - id: wait
+        label: 坐下等雾散
+        risk: low
+        check: null
+        time_cost_days: 60
+        success_effects:
+          - {type: cultivation, value: 100}
+          - {type: hp_pct, value: -15}
+        fail_effects:
+          - {type: hp_pct, value: -15}
+
+  - id: jin_zhi_huan_jing
+    title: 禁制幻境
+    category: trap
+    weight: 8
+    region_ids: [ancient_ruin_2, ancient_ruin_3, dark_abyss]
+    level_min: 23
+    level_max: 63
+    body: >-
+      前路忽然成了一片村景。断槐、土墙、井台，一样不差。
+      屋里走出一个人，喊你的乳名。你记得他早就死了。
+    choices:
+      - id: break
+        label: 以神识强破
+        risk: high
+        check: {attr: sen, difficulty_bp: 4000}
+        time_cost_days: 20
+        success_effects:
+          - {type: cultivation, value: 900}
+          - {type: attr, key: sen, value: 2}
+        fail_effects:
+          - {type: hp_pct, value: -40}
+          - {type: status, key: heart_crack}
+          - {type: dao_heart, value: -5}
+      - id: walk_in
+        label: 走进那间屋
+        risk: mid
+        check: {attr: mnd, difficulty_bp: 5000}
+        time_cost_days: 30
+        success_effects:
+          - {type: attr, key: mnd, value: 5}
+          - {type: karma, value: 10}
+        fail_effects:
+          - {type: dao_heart, value: -8}
+          - {type: hp_pct, value: -30}
+
+  - id: xin_mo_di_yu
+    title: 心魔低语
+    category: trap
+    weight: 8
+    region_ids: [back_hill, spirit_creek, dark_abyss, heaven_road]
+    level_min: 6
+    level_max: 90
+    body: >-
+      有个声音在你耳后说话。它不像外人，它像你自己，只是更耐心。
+      它说：你不必这么苦。它说了很久。
+    choices:
+      - id: resist
+        label: 咬破舌尖
+        risk: mid
+        check: {attr: mnd, difficulty_bp: 5000}
+        time_cost_days: 10
+        success_effects:
+          - {type: attr, key: mnd, value: 3}
+          - {type: cultivation, value: 300}
+          - {type: hp_pct, value: -8}
+        fail_effects:
+          - {type: hp_pct, value: -30}
+          - {type: status, key: qi_deviation}
+          - {type: dao_heart, value: -5}
+      - id: listen
+        label: 听它说完
+        risk: high
+        check: {attr: wis, difficulty_bp: 5500}
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 1500}
+          - {type: karma, value: -20}
+        fail_effects:
+          - {type: status, key: qi_deviation}
+          - {type: attr, key: mnd, value: -8}
+          - {type: karma, value: -40}
+
+  - id: shan_jian_mi_lu
+    title: 山间迷路
+    category: trap
+    weight: 8
+    region_ids: [back_hill, spirit_creek]
+    level_min: 2
+    level_max: 18
+    body: >-
+      山道分了三岔，每条都有脚印。你回头看，来路也不见了。
+      雾里有人吹叶哨，三短一长。
+    choices:
+      - id: follow_whistle
+        label: 循哨声走
+        risk: mid
+        check: {attr: luk, difficulty_bp: 5000}
+        time_cost_days: 20
+        success_effects:
+          - {type: technique, tech_id: tashan_bu}
+          - {type: attr, key: agi, value: 1}
+        fail_effects:
+          - {type: hp_pct, value: -15}
+          - {type: cultivation, value: 50}
+      - id: climb_ridge
+        label: 攀上山脊
+        risk: low
+        check: {attr: agi, difficulty_bp: 5500}
+        time_cost_days: 30
+        success_effects:
+          - {type: cultivation, value: 150}
+          - {type: hp_pct, value: -10}
+        fail_effects:
+          - {type: hp_pct, value: -25}
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) events 恰 20 条；id 唯一；每条 choices 数 ∈ [2,4]；
+#   2) 每个 choice 至少 1 项负面代价（time_cost_days > 0，或
+#      success_effects/fail_effects 中存在负值 karma/attr/hp_pct）；
+#   3) 引用到的 item_id / tech_id 必须可达（vendored 于 items.yaml / techniques.yaml）；
+#   4) 类别分布：resource 3 / npc 4 / combat 3 / fortune 3 / trap 4 / karma 3。
+# 说明：效果 type 中 dao_heart 是"道心"专用通道（区别于普通 attr），
+#       引擎需按 character.dao_heart 单独落地；status 取值 currently 用到
+#       injured / poisoned / heart_crack / qi_deviation 四种；
+#       check: null 的选项为"必定成功"，其 fail_effects 一律为空数组。

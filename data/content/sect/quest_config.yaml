@@ -1,0 +1,182 @@
+# ============================================================
+# 宗门任务 + 贡献系统配置（v1.5 → v1.6 实现配置）
+# ============================================================
+# 所有阈值与数值参数外置于此，调整数值只改 YAML 不改代码。
+# 服务启动时由 app.config.loader.load() 加载并校验。
+# ============================================================
+
+# ---------- 通用：宗门身份 ----------
+sect:
+  # 6 大宗门 + 散修通用 ID
+  valid_sect_ids:
+    - qingyun_sword  # 青云剑宗
+    - wanfa_spell     # 万法仙宗
+    - taishang_pill    # 太上丹鼎
+    - xuanzhen_array    # 玄阵堂
+    - dahuang_body    # 大荒体修门
+    - youming_demon    # 幽冥魔道
+  sansxiu_id: sansxiu  # 散修身份标签
+  # 散修好感度上限（收敛防滥用，避免散修刷爆好感）
+  reputation_max: 1000
+  # 在该好感度之上无法继续积累好感
+  # 实际只允许散修通过任务+奇遇最大获得 500
+
+# ---------- 任务分级 ----------
+quest:
+  # 任务等级
+  levels:
+    low:
+      level_id: low
+      display_name: 低级宗门任务
+      contribution_min: 10
+      contribution_max: 50
+      # 该等级任务对散修的好感度奖励（随机抽取）
+      reputation_for_sansxiu_min: 5
+      reputation_for_sansxiu_max: 15
+      # 完成该等级任务计入任务计数（用于解锁更高等级）
+      count_toward_unlock: true
+      daily_cap: 5     # 每游戏日可接 5 个低级任务
+    mid:
+      level_id: mid
+      display_name: 中级宗门任务
+      contribution_min: 60    # 严格大于 low.max=50
+      contribution_max: 150
+      reputation_for_sansxiu_min: 10
+      reputation_for_sansxiu_max: 20
+      count_toward_unlock: true
+      daily_cap: 3
+    high:
+      level_id: high
+      display_name: 高级宗门任务
+      contribution_min: 160    # 严格大于 mid.max=150
+      contribution_max: 400
+      # 散修强制不能接取 high 任务 -> service 校验
+      count_toward_unlock: false
+      daily_cap: 1
+
+  # 弟子任务解锁阈值（弟子身份才适用）
+  disciple_unlock:
+    # 弟子入宗即得 low
+    mid_required_low_quests: 10    # 完成 10 个 low 任务后解锁 mid
+    high_required_mid_quests: 15   # 完成 15 个 mid 任务后解锁 high
+    # 历史完成数同步累加：尚未进入散修匹配任务时已完成的低级任务也计入
+
+  # 散修任务解锁阈值（每个宗门独立核算好感度）
+  sansxiu_unlock:
+    mid_required_reputation: 200    # 散修对某宗门好感度 ≥ 200 才能接 mid
+    # high 任务散修永远不可接
+
+  # 任务刷新池：每个等级的任务权重，由 GameAction 抽签
+  daily_refresh_at_game_year: true  # 每游戏年刷新任务池
+
+# ---------- 贡献点 + 好感度计算 ----------
+contribution:
+  # 完成任务后贡献点 = contribution_min..contribution_max 区间随机值
+  # 散修额外获得好感度（来自 quest.levels.<lvl>.reputation_for_sansxiu_min/max）
+  
+  # v1.7 新增：散修完成任务时同步累积到 sansxiu_wallet 的比例
+  # 即：散修除了获得该宗门 contribution（用于兑换本宗物品）外，
+  # 还按此比例额外累积到 general_contribution（用于禁地消费、入宗转换）
+  sansxiu_general_share:
+    low: 0.3
+    mid: 0.5
+    high: 0.0    # 散修不可接 high，配置为 0 防御性兜底
+  
+  # 散修兑换条件：除贡献点外，散修必须达到该宗门好感度阈值
+  sansxiu_exchange_reputation_required:
+    low_technique: 100        # 凡阶
+    mid_technique: 250        # 灵阶
+    high_technique: 500        # 宝阶及以上
+  # 注：低阶功法散修兑换仅需 100 好感，中阶 250，高阶 500——
+  # 即使散修对某宗门好感 499，也无法兑换需要 500 好感的圣阶功法。
+  
+  # 散修任务接取的额外资格校验：散修若对该宗门好感度 < 0（魔道路径等导致负值）则禁止接任务。
+  sansxiu_min_reputation_to_take_quest: 0
+  
+  # v1.7 新增：散修入宗时，general_contribution × 此比例转换为宗门 contribution
+  sansxiu_join_convert_rate: 0.5
+
+# ---------- 禁地 MVP ----------
+forbidden_land:
+  # MVP 开放 2 处低阶禁地，散修掉率 +10%
+  enabled_ids:
+    - gujing_jianyuan      # 古井剑渊
+    - caomu_yuanyuan      # 草木缘渊
+  entries_per_game_year: 3       # 每游戏年最多 3 次进入
+  cooldown_days: 30              # 进入冷却 30 游戏日
+  
+  lands:
+    gujing_jianyuan:
+      land_id: gujing_jianyuan
+      display_name: 古井剑渊
+      # 锻血 Lv.9+ 可进
+      required_realm_seq: 1
+      # 散修 贡献 +10 掉率
+      sansxiu_bonus_reward_rate: 0.10
+      cost_contribution: 50      # 进入一次消耗散修贡献点 / 弟子贡献点
+      cost_lifespan_days: 0       # 预留
+      boss:
+        name: 衰败剑灵
+        force_level_coef: 1.2
+      rewards:
+        # 首通必得
+        first_clear:
+          - type: technique
+            tech_id: qinglian_jian_ge_v1
+            drop_rate: 1.0
+        # 后续重复可能掉
+        repeat:
+          - type: contribution
+            amount: 30
+            drop_rate: 1.0
+          - type: spirit_stone
+            amount: 200
+            drop_rate: 0.5
+        # 散修额外概率加成
+        sansxiu_extra_bonus:
+          - type: technique_recipe
+            tech_id: qingfeng_three_strikes
+            drop_rate: 0.15    # 散修比弟子多 10% 概率掉功法食谱
+    
+    caomu_yuanyuan:
+      land_id: caomu_yuanyuan
+      display_name: 草木缘渊
+      required_realm_seq: 2
+      sansxiu_bonus_reward_rate: 0.10
+      cost_contribution: 200
+      boss:
+        name: 老药叟分身
+        force_level_coef: 1.5
+      rewards:
+        first_clear:
+          - type: technique
+            tech_id: caomu_xin_jing
+            drop_rate: 1.0
+        repeat:
+          - type: contribution
+            amount: 80
+            drop_rate: 1.0
+          - type: material
+            mat_id: long_xue_cao
+            amount: 2
+            drop_rate: 0.4
+        sansxiu_extra_bonus:
+          - type: technique_recipe
+            tech_id: tuna_qingmu
+            drop_rate: 0.15
+  
+  # 散修仅可禁地捕获功法，不可派同修
+  # 散修掉率加成只对 first_clear 与额外 bonus 生效
+
+# ---------- 兑换资格： disciple vs sansxiu ----------
+exchange:
+  # 同一宗门贡献点通用（弟子退宗后贡献点清零）
+  disciple:
+    # 仅 check 贡献点 >= price
+    extra_check: []
+  # 散修兑换资格
+  sansxiu:
+    # must check 贡献点 >= price AND 好感度 >= required_reputation
+    extra_check:
+      - contribution_balance
+      - reputation_threshold

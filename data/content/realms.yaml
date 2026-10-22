@@ -1,0 +1,228 @@
+# ============================================================
+# 《荒天纪》v1.5 · 境界阶梯（realms.yaml）
+# ============================================================
+# 用途：12 境全量配置。全局等级 global_level = 9 × (order - 1) + 小境序号。
+#       MVP 仅开放前 2 境（forging_blood / open_palace，Lv.1–18），
+#       其余 10 境 enabled: false，仅作配置占位（V1.0 起逐卷启用）。
+# 字段：
+#   id                    境界枚举（realm_id），代码与 DB 唯一标识，禁止改名
+#   display_name          上线名（UI/文案必用；禁止出现原著参考名）
+#   order                 1–12，境界序号（时间膨胀与修为系数都按它算）
+#   level_start/level_end 全局等级区间（闭区间；emperor 只有 100 一级）
+#   base_lifespan_years   基准寿元（年），突破成功时整体重算
+#   exp_k_bp              修为曲线系数 K × 10000（1.0 → 10000）
+#   power_coef            战力系数（HP/MP/减伤公式中的"境界战力系数"）
+#   breakthrough_base_bp  本境基础突破成功率（bp）
+#   enabled               MVP 是否开放
+#   per_level_growth      每小境（每级）属性自然成长
+#   breakthrough_items    突破本境所需辅材（引用 items.yaml 的 id）
+#   unlock_features       本境解锁的玩法权限键
+# ============================================================
+
+realms:
+  - id: forging_blood
+    display_name: 锻血
+    order: 1
+    level_start: 1
+    level_end: 9
+    stage_count: 9
+    stage_note: 九次锻血（一至九炼）
+    base_lifespan_years: 100
+    exp_k_bp: 10000
+    power_coef: 1.0
+    breakthrough_base_bp: 8500
+    enabled: true
+    per_level_growth: {str: 1, con: 1, spr: 1, sen: 1, bon: 0, agi: 1}
+    breakthrough_items: []          # 锻血境只要求 Lv.9 满 + 修为满 + 气血 ≥ 80%
+    unlock_features: [cultivate, adventure, gather, spar, bag, event]
+
+  - id: open_palace
+    display_name: 辟府
+    order: 2
+    level_start: 10
+    level_end: 18
+    stage_count: 9
+    stage_note: 开九府（一至九府）
+    base_lifespan_years: 150
+    exp_k_bp: 18000
+    power_coef: 3.0
+    breakthrough_base_bp: 8000
+    enabled: true
+    per_level_growth: {str: 2, con: 2, spr: 2, sen: 2, bon: 1, agi: 2}
+    breakthrough_items: [{item_id: pifu_shi, qty: 1}]
+    unlock_features: [secret_realm, technique_pavilion, sect_quest, sect, direction, forge]
+
+  - id: spirit_transform
+    display_name: 化灵
+    order: 3
+    level_start: 19
+    level_end: 27
+    stage_count: 9
+    stage_note: 九转化灵
+    base_lifespan_years: 200
+    exp_k_bp: 30000
+    power_coef: 9.0
+    breakthrough_base_bp: 7500
+    enabled: false
+    per_level_growth: {str: 3, con: 3, spr: 3, sen: 3, bon: 1, agi: 3}
+    breakthrough_items: [{item_id: ling_ye, qty: 10}]
+    unlock_features: [alchemy, spirit_beast, sect_quest]
+
+  - id: engrave_pattern
+    display_name: 刻纹
+    order: 4
+    level_start: 28
+    level_end: 36
+    stage_count: 9
+    stage_note: 九道刻纹
+    base_lifespan_years: 300
+    exp_k_bp: 45000
+    power_coef: 27.0
+    breakthrough_base_bp: 7000
+    enabled: false
+    per_level_growth: {str: 4, con: 4, spr: 4, sen: 4, bon: 2, agi: 4}
+    breakthrough_items: [{item_id: ling_ye, qty: 20}]
+    unlock_features: [engrave]
+
+  - id: array_master
+    display_name: 布阵
+    order: 5
+    level_start: 37
+    level_end: 45
+    stage_count: 9
+    stage_note: 九座大阵
+    base_lifespan_years: 400
+    exp_k_bp: 65000
+    power_coef: 81.0
+    breakthrough_base_bp: 6500
+    enabled: false
+    per_level_growth: {str: 5, con: 5, spr: 5, sen: 5, bon: 2, agi: 5}
+    breakthrough_items: [{item_id: ling_ye, qty: 30}]
+    unlock_features: [party, faction_war]
+
+  - id: venerable
+    display_name: 尊者
+    order: 6
+    level_start: 46
+    level_end: 54
+    stage_count: 9
+    stage_note: 一至九重天
+    base_lifespan_years: 600
+    exp_k_bp: 90000
+    power_coef: 300.0
+    breakthrough_base_bp: 6000
+    enabled: false
+    per_level_growth: {str: 7, con: 7, spr: 7, sen: 7, bon: 3, agi: 7}
+    breakthrough_items: [{item_id: ling_ye, qty: 50}]
+    unlock_features: [found_faction, recruit, state_map, cross_region_teleport]
+
+  - id: kindle_lamp
+    display_name: 燃灯
+    order: 7
+    level_start: 55
+    level_end: 63
+    stage_count: 9
+    stage_note: 燃灯一至九炼
+    base_lifespan_years: 800
+    exp_k_bp: 120000
+    power_coef: 1000.0
+    breakthrough_base_bp: 5500
+    enabled: false
+    per_level_growth: {str: 9, con: 9, spr: 9, sen: 9, bon: 3, agi: 9}
+    breakthrough_items: [{item_id: ling_ye, qty: 60}]
+    unlock_features: [dao_xiang, cross_state_teleport]
+
+  - id: unify_one
+    display_name: 归一
+    order: 8
+    level_start: 64
+    level_end: 72
+    stage_count: 9
+    stage_note: 归一至归九
+    base_lifespan_years: 1200
+    exp_k_bp: 160000
+    power_coef: 3000.0
+    breakthrough_base_bp: 4800
+    enabled: false
+    per_level_growth: {str: 12, con: 12, spr: 12, sen: 12, bon: 4, agi: 12}
+    breakthrough_items: [{item_id: ling_ye, qty: 80}]
+    unlock_features: [time_secret, dao_lineage]
+
+  - id: sage
+    display_name: 圣人
+    order: 9
+    level_start: 73
+    level_end: 81
+    stage_count: 9
+    stage_note: 一至九品圣人
+    base_lifespan_years: 2000
+    exp_k_bp: 220000
+    power_coef: 12000.0
+    breakthrough_base_bp: 4000
+    enabled: false
+    per_level_growth: {str: 16, con: 16, spr: 16, sen: 16, bon: 5, agi: 16}
+    breakthrough_items: [{item_id: ling_ye, qty: 100}]
+    unlock_features: [holy_land, found_dao_lineage]
+
+  - id: great_sage
+    display_name: 大圣
+    order: 10
+    level_start: 82
+    level_end: 90
+    stage_count: 9
+    stage_note: 一至九重大圣
+    base_lifespan_years: 3000
+    exp_k_bp: 300000
+    power_coef: 50000.0
+    breakthrough_base_bp: 3200
+    enabled: false
+    per_level_growth: {str: 20, con: 20, spr: 20, sen: 20, bon: 6, agi: 20}
+    breakthrough_items: [{item_id: ling_ye, qty: 120}]
+    unlock_features: [heaven_road, saga_chain]
+
+  - id: quasi_emperor
+    display_name: 准帝
+    order: 11
+    level_start: 91
+    level_end: 99
+    stage_count: 9
+    stage_note: 一至九重准帝
+    base_lifespan_years: 5000
+    exp_k_bp: 420000
+    power_coef: 200000.0
+    breakthrough_base_bp: 2000
+    enabled: false
+    per_level_growth: {str: 25, con: 25, spr: 25, sen: 25, bon: 8, agi: 25}
+    breakthrough_items: [{item_id: ling_ye, qty: 150}]
+    unlock_features: [emperor_trial, heaven_road_final]
+
+  - id: emperor
+    display_name: 大帝
+    order: 12
+    level_start: 100
+    level_end: 100
+    stage_count: 1
+    stage_note: 唯一（帝位）
+    base_lifespan_years: 10000
+    exp_k_bp: 420000
+    power_coef: 1000000.0
+    breakthrough_base_bp: 0
+    is_terminal: true
+    enabled: false
+    per_level_growth: {str: 0, con: 0, spr: 0, sen: 0, bon: 0, agi: 0}
+    breakthrough_items: []
+    unlock_features: [ending, immortal_gate]
+
+# ------------------------------------------------------------
+# 配置说明 / 口径备忘
+# ------------------------------------------------------------
+# 1) 后 10 境的 breakthrough_items 统一引用 ling_ye（灵液）作辅材占位，
+#    原因：MVP 的 items.yaml 只允许 15 条（6 丹 + 4 材 + 5 消耗品），
+#    刻纹刀/归一石/帝血等专属辅材未入表；V1.1 扩充 items.yaml 后
+#    逐境替换为专属材料，不需要改引擎。
+# 2) emperor 为终局境界：无下一境，breakthrough_base_bp = 0 且 is_terminal: true，
+#    引擎不得为其生成突破按钮。
+# 3) 寿元为「基准值」，突破成功时整体重算（不是加差值）：
+#    锻血→辟府净增 50 年。
+# 4) 校验断言：realms 恰 12 条；enabled=true 恰为 forging_blood、open_palace；
+#    order 连续 1–12；level_start/level_end 覆盖 1–100 无空洞无重叠。

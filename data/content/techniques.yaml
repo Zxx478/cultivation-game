@@ -1,0 +1,703 @@
+# ============================================================
+# 《荒天纪》v1.5 · 功法（techniques.yaml）
+# ============================================================
+# 用途：41 部功法全量配置。id 必须与 backend/app/db/repository.py 的
+#       SEED_TECHNIQUES 完全一致（该表是宗门兑换/禁地首通发放的主键）；
+#       缺失即会导致"扣了贡献却发不出功法"。
+# 构成：通用 12（不绑宗门）+ 宗门独有 24（6 宗 × 4）+ 散修/禁地 5。
+# 字段：
+#   id                     功法枚举，禁止改名
+#   name                   上线名（含书名号）
+#   tier                   品阶 fan|ling|bao|sheng|di
+#   sub_tier               品级 xia|zhong|shang
+#   type                   heart(心法) | attack(攻击) | defense(防御) | support(辅助)
+#   required_realm_index   可修习最低大境序号（凡1/灵2/宝3/圣9/帝12）
+#   max_layer              修炼层数上限（1–9）
+#   source                 获取来源 general|sect|sansxiu|forbidden（可数组）
+#   sect_id                绑定宗门 id（无则 null）
+#   contribution_price     宗门兑换贡献价（非宗门功法为 null）
+#   obtain                 获取途径文案
+#   description            效果描述（半文半白，满层效果）
+#   cultivation_multiplier_bp  修炼系数 ×10000（仅心法非 10000；攻击/防御/辅助恒 10000）
+#   layer_formula          层数加成公式参数：第 n 层系数 = base_coef_bp × (1 + 0.08 × n)
+#   skill                  主动术法参数（心法为 0/0/0）
+# ============================================================
+
+techniques:
+  # ---------------- 通用功法（12 部，不绑宗门） ----------------
+  - id: duanxue_jue
+    name: 《锻血诀》
+    tier: fan
+    sub_tier: zhong
+    type: heart
+    required_realm_index: 1
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 新手引导发放（创角即得第一层）
+    description: 以血气反复冲刷骨肉。修炼 ×1.12；力量 +6%、体魄 +6%。
+    cultivation_multiplier_bp: 11200
+    layer_formula: {base_coef_bp: 11200, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 无}
+
+  - id: shanyue_quan
+    name: 《山岳拳》
+    tier: fan
+    sub_tier: shang
+    type: attack
+    required_realm_index: 1
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 断槐村商店（200 灵石）
+    description: 一拳如坠石。单体 130% 力量，破甲 +15%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 11600, growth_bp_per_layer: 800}
+    skill: {power_pct: 130, mp_cost: 8, cooldown: 2, effect: 破甲 +15%}
+
+  - id: tuna_qingmu
+    name: 《吐纳青木》
+    tier: fan
+    sub_tier: xia
+    type: support
+    required_realm_index: 1
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 药坡采集 10 株止血草后自动领会
+    description: 吐纳如草木。每回合回气 3%；采药时隐身概率 +10%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 10800, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 5, cooldown: 3, effect: 每回合回气 3%}
+
+  - id: kurong_jing_can
+    name: 《枯荣经·残卷》
+    tier: ling
+    sub_tier: shang
+    type: heart
+    required_realm_index: 2
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 辟府秘境三层 BOSS
+    description: 一岁一枯荣。修炼 ×1.36；全属性 +8%；每十回合回一成血。
+    cultivation_multiplier_bp: 13600
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 每十回合回 1% 气血}
+
+  - id: pifu_yinlei
+    name: 《辟府引雷术》
+    tier: ling
+    sub_tier: zhong
+    type: attack
+    required_realm_index: 2
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 辟府主线卷二任务奖励
+    description: 引天雷入府。单体术法 280% 灵力，三成概率麻痹。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 280, mp_cost: 35, cooldown: 4, effect: 30% 概率麻痹 1 回合}
+
+  - id: guanshu_lang
+    name: 《观书郎》
+    tier: ling
+    sub_tier: xia
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 辟府境图书馆奇遇
+    description: 观书如观人。神识 +12%；参悟古卷快两成。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 12500, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 神识 +12%，参悟速度 +20%}
+
+  - id: jiuyou_shihun_zhua
+    name: 《九幽噬魂爪》
+    tier: bao
+    sub_tier: zhong
+    type: attack
+    required_realm_index: 3
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 化灵期宗门任务链终章
+    description: 爪落魂散。单体 320% 力量，附噬魂，夺敌灵力上限。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 15700, growth_bp_per_layer: 800}
+    skill: {power_pct: 320, mp_cost: 60, cooldown: 4, effect: 目标灵力上限 −15%，持续 3 回合}
+
+  - id: jingang_buhuai_shen
+    name: 《金刚不坏身》
+    tier: sheng
+    sub_tier: xia
+    type: defense
+    required_realm_index: 9
+    max_layer: 9
+    source: [general, forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 圣人期"古战场"探索；黑暗劫冢首通
+    description: 肉身如金铁。受伤 −28%；血薄时再减；每战首次致死免。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 19000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 40, cooldown: 6, effect: 减伤 28%（血 < 30% 再 −15%），每战首致死免疫}
+
+  - id: dijing_huangtian
+    name: 《帝经·荒天篇》
+    tier: di
+    sub_tier: shang
+    type: heart
+    required_realm_index: 12
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 准帝期主线卷六终章
+    description: 荒天不朽。修炼 ×2.80；全属性 +25%；突破 +10%。
+    cultivation_multiplier_bp: 28000
+    layer_formula: {base_coef_bp: 28000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 突破成功率 +10%}
+
+  - id: guankong_zhaixing
+    name: 《观空摘星》
+    tier: bao
+    sub_tier: shang
+    type: support
+    required_realm_index: 3
+    max_layer: 9
+    source: [general]
+    sect_id: null
+    contribution_price: null
+    obtain: 阵衍山禁地奇遇
+    description: 抬手摘星。每回合抽三灵力；命中 +15%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 16500, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 每回合 +3 灵力，命中 +15%}
+
+  - id: qinglian_jian_ge_v1
+    name: 《青莲剑歌·卷一》
+    tier: bao
+    sub_tier: zhong
+    type: attack
+    required_realm_index: 3
+    max_layer: 9
+    source: [general, sansxiu]
+    sect_id: null
+    contribution_price: null
+    obtain: 散修奇遇"古井剑声"（献祭本命法器）；古井剑渊首通
+    description: 一朵青莲开三处。群体剑术，三目标分摊 220% 力量。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 15700, growth_bp_per_layer: 800}
+    skill: {power_pct: 220, mp_cost: 50, cooldown: 5, effect: 最多 3 目标分摊}
+
+  - id: kurong_jing_zhong
+    name: 《枯荣经·终卷》
+    tier: sheng
+    sub_tier: shang
+    type: heart
+    required_realm_index: 9
+    max_layer: 9
+    source: [general, forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 上古遗迹深处隐卷；圣域渊谷首通
+    description: 枯荣尽处是长生。修炼 ×2.10；全属性 +18%；每战复活一次。
+    cultivation_multiplier_bp: 21000
+    layer_formula: {base_coef_bp: 21000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 每场战斗复活 1 次}
+
+  # ---------------- 青云剑宗（剑修 4 部） ----------------
+  - id: qingfeng_three_strikes
+    name: 《青锋三式》
+    tier: ling
+    sub_tier: zhong
+    type: attack
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: qingyun_sword
+    contribution_price: 800
+    obtain: 青云剑宗贡献兑换
+    description: 三式十二变，破甲 +30%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 280, mp_cost: 25, cooldown: 3, effect: 破甲 +30%}
+
+  - id: qingyun_jian_jue_v2_yixian
+    name: 《青云剑诀·一弦》
+    tier: ling
+    sub_tier: shang
+    type: attack
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: qingyun_sword
+    contribution_price: 1800
+    obtain: 青云剑宗贡献兑换
+    description: 一弦既出，必中。350% 力量，每两次剑术减剑术 CD 一回合。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 350, mp_cost: 40, cooldown: 4, effect: 必命中；每释放 2 次剑术，下次剑术 CD −1}
+
+  - id: wan_jian_guizong_chuwen
+    name: 《万剑归宗·初闻》
+    tier: bao
+    sub_tier: xia
+    type: attack
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect, forbidden]
+    sect_id: qingyun_sword
+    contribution_price: 3200
+    obtain: 青云剑宗贡献兑换；万剑遗冢首通（异本）
+    description: 万剑归于一。群体分摊 220% 力量。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 15000, growth_bp_per_layer: 800}
+    skill: {power_pct: 220, mp_cost: 55, cooldown: 5, effect: 最多 3 目标分摊}
+
+  - id: qingyun_dian_dinglan
+    name: 《青云剑典·定澜》
+    tier: sheng
+    sub_tier: xia
+    type: attack
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: qingyun_sword
+    contribution_price: 6000
+    obtain: 青云剑宗贡献兑换（剑修第六层传承）
+    description: 剑落澜止。群体 480% 力量，三成概率减速。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 19000, growth_bp_per_layer: 800}
+    skill: {power_pct: 480, mp_cost: 120, cooldown: 7, effect: 30% 概率减速（先手 −30%，2 回合）}
+
+  # ---------------- 万法仙宗（法修 4 部） ----------------
+  - id: guanwei_rumiao
+    name: 《观微入妙》
+    tier: ling
+    sub_tier: xia
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: wanfa_spell
+    contribution_price: 800
+    obtain: 万法仙宗贡献兑换
+    description: 见微而知著。神识 +12%，战斗中可见敌技能冷却。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 12500, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 神识 +12%；可见敌方技能 CD}
+
+  - id: xiaocheng_wanfa_tu
+    name: 《小成万法图》
+    tier: ling
+    sub_tier: shang
+    type: heart
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: wanfa_spell
+    contribution_price: 1800
+    obtain: 万法仙宗贡献兑换
+    description: 诸法初成。修炼 ×1.30；术法伤害 +10%。
+    cultivation_multiplier_bp: 13000
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 术法伤害 +10%}
+
+  - id: fadao_zhenjie_lingpian
+    name: 《法道真解·灵篇》
+    tier: bao
+    sub_tier: xia
+    type: heart
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect]
+    sect_id: wanfa_spell
+    contribution_price: 3500
+    obtain: 万法仙宗贡献兑换
+    description: 道在简处。灵力 +20%；术法 CD −1。
+    cultivation_multiplier_bp: 15000
+    layer_formula: {base_coef_bp: 15000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 灵力 +20%；术法 CD −1}
+
+  - id: zhutian_facang
+    name: 《诸天法藏》
+    tier: sheng
+    sub_tier: zhong
+    type: heart
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: wanfa_spell
+    contribution_price: 7000
+    obtain: 万法仙宗贡献兑换
+    description: 收诸天之法于一藏。修炼 ×2.10；全属性 +12%；术法 +25%。
+    cultivation_multiplier_bp: 21000
+    layer_formula: {base_coef_bp: 20000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 术法伤害 +25%}
+
+  # ---------------- 太上丹鼎（丹修 4 部） ----------------
+  - id: bianyao_baiwen
+    name: 《辨药百问》
+    tier: ling
+    sub_tier: xia
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: taishang_pill
+    contribution_price: 600
+    obtain: 太上丹鼎贡献兑换
+    description: 百问而后识药。采药掉率 +20%；解一阶丹方。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 12500, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 采药掉率 +20%}
+
+  - id: danfang_jichu
+    name: 《丹房基础》
+    tier: ling
+    sub_tier: zhong
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: taishang_pill
+    contribution_price: 1200
+    obtain: 太上丹鼎贡献兑换
+    description: 火候、分量、时辰。炼丹成功率 +10%；解二阶丹方。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 炼丹成功率 +10%}
+
+  - id: baicao_tongxuan
+    name: 《百草通玄》
+    tier: bao
+    sub_tier: zhong
+    type: support
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect]
+    sect_id: taishang_pill
+    contribution_price: 2500
+    obtain: 太上丹鼎贡献兑换
+    description: 草木皆有性。炼丹 +18%；丹药效价 +10%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 15700, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 炼丹 +18%，丹药效价 +10%}
+
+  - id: shennong_neijing_canj
+    name: 《神农内经·残卷》
+    tier: sheng
+    sub_tier: xia
+    type: support
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: taishang_pill
+    contribution_price: 6500
+    obtain: 太上丹鼎贡献兑换
+    description: 丹道即天道。炼丹 +25%；圣阶丹方解锁；终生可炼济世丹。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 19000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 炼丹 +25%；济世丹每场满血复活 1 次}
+
+  # ---------------- 玄阵堂（阵修 4 部） ----------------
+  - id: jianzhen_pu
+    name: 《简阵谱》
+    tier: ling
+    sub_tier: zhong
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: xuanzhen_array
+    contribution_price: 900
+    obtain: 玄阵堂贡献兑换
+    description: 简者，可久。解一至二阶困阵、杀阵阵图。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 20, cooldown: 4, effect: 布阵速度 +20%}
+
+  - id: guanzhen_yan
+    name: 《观阵眼》
+    tier: ling
+    sub_tier: shang
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: xuanzhen_array
+    contribution_price: 1800
+    obtain: 玄阵堂贡献兑换
+    description: 阵有一眼，破眼则阵散。神识 +15%；识破敌阵 +30%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 神识 +15%，识破敌阵概率 +30%}
+
+  - id: sanqianjie_rumen
+    name: 《三千界·入门》
+    tier: bao
+    sub_tier: xia
+    type: support
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect]
+    sect_id: xuanzhen_array
+    contribution_price: 2500
+    obtain: 玄阵堂贡献兑换
+    description: 一界一阵，三千界三千阵。阵法 ×1.5；功法效果 +12%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 15000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 30, cooldown: 5, effect: 阵法效果 +12%}
+
+  - id: zhoutian_xingdou_zhenjing
+    name: 《周天星斗真经》
+    tier: sheng
+    sub_tier: xia
+    type: support
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: xuanzhen_array
+    contribution_price: 6500
+    obtain: 玄阵堂贡献兑换
+    description: 布星斗为阵。阵法 ×2.0；全场困敌三回合、减伤五成。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 19000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 150, cooldown: 8, effect: 困敌 3 回合 + 减伤 50%}
+
+  # ---------------- 大荒体修门（体修 4 部） ----------------
+  - id: cuiti_jue
+    name: 《淬体诀》
+    tier: ling
+    sub_tier: zhong
+    type: heart
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: dahuang_body
+    contribution_price: 1000
+    obtain: 大荒体修门贡献兑换
+    description: 以痛养身。力量 +8%、体魄 +8%；普攻附震伤 3%。
+    cultivation_multiplier_bp: 12000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 普攻附震伤 3%}
+
+  - id: dahuang_lianji_jue
+    name: 《大荒炼肌诀》
+    tier: ling
+    sub_tier: shang
+    type: defense
+    required_realm_index: 2
+    max_layer: 9
+    source: [sect]
+    sect_id: dahuang_body
+    contribution_price: 2000
+    obtain: 大荒体修门贡献兑换
+    description: 肌如绞索。力量 +15%；受伤 −8%；气血上限 +15%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 25, cooldown: 4, effect: 受伤 −8%，气血上限 +15%}
+
+  - id: dahuang_zhan_tian_lu_v2
+    name: 《大荒战天录》
+    tier: sheng
+    sub_tier: shang
+    type: defense
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: dahuang_body
+    contribution_price: 4000
+    obtain: 大荒体修门贡献兑换（v1.5 削弱版）
+    description: 战天而不屈。力量 +35%、体魄 +20%；普攻附震伤 5%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 21000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 50, cooldown: 6, effect: 普攻附震伤 5%（目标 −5% 当前气血）}
+
+  - id: bahuang_liuhe_bumie
+    name: 《八荒六合不灭体》
+    tier: sheng
+    sub_tier: zhong
+    type: defense
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: dahuang_body
+    contribution_price: 5500
+    obtain: 大荒体修门贡献兑换
+    description: 体不灭，则人不亡。体魄 +25%；血薄时硬直抗性 +50%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 20000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 60, cooldown: 7, effect: 血 < 30% 时硬直抗性 +50%}
+
+  # ---------------- 幽冥魔道（4 部） ----------------
+  - id: shihun_mo_jing
+    name: 《噬魂魔经》
+    tier: bao
+    sub_tier: shang
+    type: attack
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect]
+    sect_id: youming_demon
+    contribution_price: 2000
+    obtain: 幽冥魔道贡献兑换
+    description: 噬人魂魄以自养。攻击附吸魂，回自身 5% 灵力。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 16500, growth_bp_per_layer: 800}
+    skill: {power_pct: 300, mp_cost: 45, cooldown: 3, effect: 命中回自身 5% 灵力}
+
+  - id: xuesha_mo_dian
+    name: 《血煞魔典》
+    tier: bao
+    sub_tier: zhong
+    type: heart
+    required_realm_index: 3
+    max_layer: 9
+    source: [sect]
+    sect_id: youming_demon
+    contribution_price: 1500
+    obtain: 幽冥魔道贡献兑换
+    description: 以血换力。生命力 +20%；攻击 +8%，每战自伤 1% 最大气血。
+    cultivation_multiplier_bp: 15000
+    layer_formula: {base_coef_bp: 15700, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 攻击 +8%，每战开场伤 1% 最大气血}
+
+  - id: youming_zhen_jue
+    name: 《幽冥真诀》
+    tier: sheng
+    sub_tier: xia
+    type: heart
+    required_realm_index: 9
+    max_layer: 9
+    source: [sect]
+    sect_id: youming_demon
+    contribution_price: 4500
+    obtain: 幽冥魔道贡献兑换
+    description: 幽冥无声。大幅强化魔化分支，每五战一次无视威力。
+    cultivation_multiplier_bp: 19000
+    layer_formula: {base_coef_bp: 19000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 每 5 场战斗 1 次无视敌方减伤}
+
+  - id: jiuyou_busi_zhang
+    name: 《九幽不死章》
+    tier: di
+    sub_tier: xia
+    type: heart
+    required_realm_index: 12
+    max_layer: 9
+    source: [sect]
+    sect_id: youming_demon
+    contribution_price: 8000
+    obtain: 幽冥魔道贡献兑换（魔道终极）
+    description: 九幽之下，死亦不生。每战复活一次；攻击 +15%。
+    cultivation_multiplier_bp: 25000
+    layer_formula: {base_coef_bp: 25000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 每场复活 1 次，攻击 +15%}
+
+  # ---------------- 散修 / 禁地独家（5 部） ----------------
+  - id: caomu_xin_jing
+    name: 《草木心经》
+    tier: ling
+    sub_tier: shang
+    type: heart
+    required_realm_index: 2
+    max_layer: 9
+    source: [sansxiu, forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 散修奇遇"药叟毒丸"择对；草木缘渊首通
+    description: 草木有心，可通人身。修炼 ×1.30；灵力上限 +12%。
+    cultivation_multiplier_bp: 13000
+    layer_formula: {base_coef_bp: 13600, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 灵力上限 +12%}
+
+  - id: tashan_bu
+    name: 《踏山步》
+    tier: ling
+    sub_tier: zhong
+    type: support
+    required_realm_index: 2
+    max_layer: 9
+    source: [sansxiu]
+    sect_id: null
+    contribution_price: null
+    obtain: 散修奇遇"山间迷路"三成概率触发
+    description: 山高路远，脚下一寸不虚。身法 +15%、闪避 +5%。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 13000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 身法 +15%，闪避 +5%}
+
+  - id: qianji_jing_chu
+    name: 《千机镜·初》
+    tier: bao
+    sub_tier: shang
+    type: support
+    required_realm_index: 3
+    max_layer: 9
+    source: [forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 九幽低语首通
+    description: 镜中有千机，照来即返。反弹 25% 法术伤害。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 16500, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 45, cooldown: 5, effect: 反弹 25% 法术伤害}
+
+  - id: beihuang_leisha_jue
+    name: 《北荒雷杀诀》
+    tier: bao
+    sub_tier: shang
+    type: attack
+    required_realm_index: 3
+    max_layer: 9
+    source: [forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 北荒雷域首通
+    description: 北荒之雷，杀而不赦。单体术法 380% 灵力。
+    cultivation_multiplier_bp: 10000
+    layer_formula: {base_coef_bp: 16500, growth_bp_per_layer: 800}
+    skill: {power_pct: 380, mp_cost: 80, cooldown: 4, effect: 单体术法，无附加}
+
+  - id: beichen_di_dian
+    name: 《北辰帝典》
+    tier: di
+    sub_tier: zhong
+    type: heart
+    required_realm_index: 12
+    max_layer: 9
+    source: [forbidden]
+    sect_id: null
+    contribution_price: null
+    obtain: 帝关凝血首通
+    description: 北辰居中，众星拱之。修炼 ×2.65；全属性 +22%；突破 +5%。
+    cultivation_multiplier_bp: 26500
+    layer_formula: {base_coef_bp: 26000, growth_bp_per_layer: 800}
+    skill: {power_pct: 0, mp_cost: 0, cooldown: 0, effect: 突破成功率 +5%}
+
+# ------------------------------------------------------------
+# 口径与校验备忘
+# ------------------------------------------------------------
+# 1) 层数加成：第 n 层系数 = base_coef_bp × (1 + 0.08 × n)（§4.3 通式）。
+#    例：宝阶中品 base=15700，第 9 层 = 15700 × 1.72 = 27004bp ≈ 2.70×。
+# 2) 心法最多同时装备 1 部（玄阵心体质例外，可 2 部）；
+#    攻击/防御/辅助各最多 3 部。
+# 3) 越阶惩罚：越一阶（如 Lv.18 修宝阶）参悟速度 ×0.6；越两阶以上系数 ×0.3
+#    且每次参悟 15% 概率走火入魔。惩罚系数写在引擎，不在本表。
+# 4) 校验断言：techniques 恰 41 条；id 唯一；36 个既有 SEED_TECHNIQUES id 全覆盖；
+#    tier ∈ {fan,ling,bao,sheng,di}；sub_tier ∈ {xia,zhong,shang}；
+#    宗门功法恰 24 条且 sect_id 与 sects.yaml.techniques 一一对应；
+#    source 含 sect 者必须带 sect_id 与 contribution_price。

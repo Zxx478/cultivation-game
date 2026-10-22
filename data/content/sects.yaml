@@ -1,0 +1,315 @@
+# ============================================================
+# 《荒天纪》v1.5 · 宗门与方向（sects.yaml）
+# ============================================================
+# 用途：6 宗门（入门条件 + 4 部独有功法兑换 + 适配方向）+ 5 系方向树。
+#       宗门身份与贡献点的权威仍在 sect_member / sansxiu_wallet（既有表），
+#       本文件只提供「规则与内容」，不做状态存储。
+# 宗门字段：
+#   id              宗门枚举（= character.path_id / sect_member.sect_id）
+#   name/desc       名称与文案
+#   direction       适配方向（body|sword|spell|alchemy|array）
+#   join_requirements  入门条件（除统一要求 min_level 10 外逐宗不同）
+#   techniques      4 部独有功法 {tech_id, contribution_price}
+#   exclusive_note  宗门其它可兑换物（丹药/装备/神通，不计入 24 部）
+# 方向树字段（顶层 directions，5 系 × 3 层 × 3 节点 = 45 节点）：
+#   id / name / layer / required_total_contribution / effects / desc
+#   节点按 required_total_contribution 升序激活；激活是**累计贡献门槛**
+#   （不是消耗），与既有 QuestService 的贡献余额口径一致。
+# ============================================================
+
+sects:
+  - id: qingyun_sword
+    name: 青云剑宗
+    desc: 一剑破万法。石阶三千级，剑冢三千座。
+    direction: sword
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 3
+      attrs: {}
+      materials_any: []
+      karma_max: null
+      text: 辟府境 Lv.10 且试剑台连胜 3 场
+    techniques:
+      - {tech_id: qingfeng_three_strikes, contribution_price: 800}
+      - {tech_id: qingyun_jian_jue_v2_yixian, contribution_price: 1800}
+      - {tech_id: wan_jian_guizong_chuwen, contribution_price: 3200}
+      - {tech_id: qingyun_dian_dinglan, contribution_price: 6000}
+    exclusive_note: 另有青锋剑（凡·上品）、洗剑丹、神通「剑意凝形」，计入宗门兑换表但不计 24 部功法。
+
+  - id: wanfa_spell
+    name: 万法仙宗
+    desc: 诸法无常，万法归宗。洞天里供着三千卷，卷卷不全。
+    direction: spell
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 0
+      attrs: {wis: 25}
+      materials_any: []
+      karma_max: null
+      text: 辟府境 Lv.10 且悟性 ≥ 25
+    techniques:
+      - {tech_id: guanwei_rumiao, contribution_price: 800}
+      - {tech_id: xiaocheng_wanfa_tu, contribution_price: 1800}
+      - {tech_id: fadao_zhenjie_lingpian, contribution_price: 3500}
+      - {tech_id: zhutian_facang, contribution_price: 7000}
+    exclusive_note: 另有法源灵珠（灵·上品）与洞天听讲名额。
+
+  - id: taishang_pill
+    name: 太上丹鼎
+    desc: 丹道即天道。炉火三百年没熄过，也没人能说清是谁点的。
+    direction: alchemy
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 0
+      attrs: {}
+      materials_any: [long_xue_cao, ling_ye]
+      materials_qty: 3
+      karma_max: null
+      text: 辟府境 Lv.10 且持灵药（龙血草或灵液）≥ 3 株
+    techniques:
+      - {tech_id: bianyao_baiwen, contribution_price: 600}
+      - {tech_id: danfang_jichu, contribution_price: 1200}
+      - {tech_id: baicao_tongxuan, contribution_price: 2500}
+      - {tech_id: shennong_neijing_canj, contribution_price: 6500}
+    exclusive_note: 另有神农炼丹炉（宝·中品）与三阶丹方残卷。
+
+  - id: xuanzhen_array
+    name: 玄阵堂
+    desc: 阵者，制乾坤。山中无墙，处处是墙。
+    direction: array
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 0
+      attrs: {sen: 25}
+      materials_any: []
+      karma_max: null
+      text: 辟府境 Lv.10 且神识 ≥ 25
+    techniques:
+      - {tech_id: jianzhen_pu, contribution_price: 900}
+      - {tech_id: guanzhen_yan, contribution_price: 1800}
+      - {tech_id: sanqianjie_rumen, contribution_price: 2500}
+      - {tech_id: zhoutian_xingdou_zhenjing, contribution_price: 6500}
+    exclusive_note: 另有阵图拓本与「周天星斗阵」布阵许可。
+
+  - id: dahuang_body
+    name: 大荒体修门
+    desc: 肉身为器，万法不侵。荒石岭上不供神，只供一块磨凹的石头。
+    direction: body
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 0
+      attrs: {str: 12}
+      materials_any: []
+      karma_max: null
+      text: 辟府境 Lv.10 且力量 ≥ 12
+    techniques:
+      - {tech_id: cuiti_jue, contribution_price: 1000}
+      - {tech_id: dahuang_lianji_jue, contribution_price: 2000}
+      - {tech_id: dahuang_zhan_tian_lu_v2, contribution_price: 4000}
+      - {tech_id: bahuang_liuhe_bumie, contribution_price: 5500}
+    exclusive_note: 另有荒石护腕（宝·上品）与体修灵药「淬骨膏」。
+
+  - id: youming_demon
+    name: 幽冥魔道
+    desc: 逆天而行，果报自负。九幽外域没有门，只有一道缝。
+    direction: body
+    join_requirements:
+      min_level: 10
+      trial_win_streak: 0
+      attrs: {}
+      materials_any: []
+      karma_max: -100
+      text: 因果 ≤ −100（魔道门槛，不看方向）
+    techniques:
+      - {tech_id: shihun_mo_jing, contribution_price: 2000}
+      - {tech_id: xuesha_mo_dian, contribution_price: 1500}
+      - {tech_id: youming_zhen_jue, contribution_price: 4500}
+      - {tech_id: jiuyou_busi_zhang, contribution_price: 8000}
+    exclusive_note: 另有九幽爪、阴魂幡（宝·中品）与「魔化」分支解锁。
+
+# ---------------- 5 系方向树（3 层 × 3 节点 = 9 节/系，共 45） ----------------
+directions:
+  - id: body
+    name: 体修
+    desc: 以身为炉，以痛为薪。
+    layers:
+      - layer: 1
+        name: 炼皮
+        nodes:
+          - id: body_l1_n1
+            name: 锻筋骨
+            layer: 1
+            required_total_contribution: 0
+            desc: 入宗即得。
+            effects:
+              - {type: attr_pct, key: str, value: 5}
+              - {type: attr_pct, key: con, value: 5}
+          - id: body_l1_n2
+            name: 钢筋铁骨
+            layer: 1
+            required_total_contribution: 100
+            desc: 皮肉之下另有一层。
+            effects:
+              - {type: damage_taken_pct, value: -8}
+          - id: body_l1_n3
+            name: 蛮力
+            layer: 1
+            required_total_contribution: 300
+            desc: 不讲章法，只讲分量。
+            effects:
+              - {type: normal_attack_flat, value: 20}
+      - layer: 2
+        name: 换血
+        nodes:
+          - id: body_l2_n1
+            name: 金刚身
+            layer: 2
+            required_total_contribution: 1000
+            desc: 血换三遍，骨如铁铸。
+            effects:
+              - {type: damage_taken_pct, value: -10}
+              - {type: hard_control_resist_pct, value: 50}
+          - id: body_l2_n2
+            name: 燃血冲撞
+            layer: 2
+            required_total_contribution: 1500
+            desc: 烧一分血，撞一寸墙。
+            effects:
+              - {type: skill_unlock, key: ranxue_chongzhuang, value: 250}
+          - id: body_l2_n3
+            name: 越战越强
+            layer: 2
+            required_total_contribution: 2000
+            desc: 打久了，手反而更稳。
+            effects:
+              - {type: consec_battle_atk_pct, value: 5, max: 30}
+      - layer: 3
+        name: 证身
+        nodes:
+          - id: body_l3_n1
+            name: 不死之身
+            layer: 3
+            required_total_contribution: 5000
+            desc: 每战一次，留下十分血。
+            effects:
+              - {type: death_immune_per_battle, value: 1}
+          - id: body_l3_n2
+            name: 怒涛掌
+            layer: 3
+            required_total_contribution: 6000
+            desc: 一掌推潮。
+            effects:
+              - {type: skill_unlock, key: nutao_zhang, value: 350}
+          - id: body_l3_n3
+            name: 肉身证道
+            layer: 3
+            required_total_contribution: 8000
+            desc: 身即是道，道即是身。
+            effects:
+              - {type: damage_taken_pct, value: -8}
+              - {type: first_lethal_immune, value: 1}
+
+  - id: sword
+    name: 剑修
+    desc: 剑是直的，所以人不能弯。
+    layers:
+      - layer: 1
+        name: 明心
+        nodes:
+          - {id: sword_l1_n1, name: 剑心通明, layer: 1, required_total_contribution: 0, desc: 入宗即得。, effects: [{type: sword_damage_pct, value: 5}]}
+          - {id: sword_l1_n2, name: 一刃知秋, layer: 1, required_total_contribution: 100, desc: 出剑之前先看见结果。, effects: [{type: crit_rate_bp, value: 300}]}
+          - {id: sword_l1_n3, name: 踏雪无痕, layer: 1, required_total_contribution: 300, desc: 脚下不留印。, effects: [{type: init_flat, value: 10}]}
+      - layer: 2
+        name: 御剑
+        nodes:
+          - {id: sword_l2_n1, name: 万剑归鞘, layer: 2, required_total_contribution: 1000, desc: 收剑比出剑难。, effects: [{type: sword_cd_reduce, value: 1}]}
+          - {id: sword_l2_n2, name: 断流, layer: 2, required_total_contribution: 1500, desc: 一剑断水，水不复合。, effects: [{type: sword_pen_pct, value: 25}]}
+          - {id: sword_l2_n3, name: 剑意不散, layer: 2, required_total_contribution: 2000, desc: 剑意比剑长。, effects: [{type: first_sword_crit, value: 1}]}
+      - layer: 3
+        name: 入道
+        nodes:
+          - {id: sword_l3_n1, name: 一剑光寒, layer: 3, required_total_contribution: 5000, desc: 一室皆冷。, effects: [{type: sword_damage_pct, value: 20}]}
+          - {id: sword_l3_n2, name: 剑域, layer: 3, required_total_contribution: 6000, desc: 域中只有你的剑。, effects: [{type: skill_unlock, key: jian_yu, value: 0}]}
+          - {id: sword_l3_n3, name: 人剑合一, layer: 3, required_total_contribution: 8000, desc: 手持剑，还是剑持人。, effects: [{type: sword_damage_pct, value: 15}, {type: sword_weapon_bonus_pct, value: 20}]}
+
+  - id: spell
+    name: 法修
+    desc: 法无定法，念到即到。
+    layers:
+      - layer: 1
+        name: 引气
+        nodes:
+          - {id: spell_l1_n1, name: 引气入府, layer: 1, required_total_contribution: 0, desc: 入宗即得。, effects: [{type: spell_damage_pct, value: 5}]}
+          - {id: spell_l1_n2, name: 三息不散, layer: 1, required_total_contribution: 100, desc: 三息之内，灵力不散。, effects: [{type: mp_max_pct, value: 8}]}
+          - {id: spell_l1_n3, name: 念动即至, layer: 1, required_total_contribution: 300, desc: 心比手快。, effects: [{type: spell_cd_reduce_per_battle, value: 1}]}
+      - layer: 2
+        name: 结印
+        nodes:
+          - {id: spell_l2_n1, name: 法随心转, layer: 2, required_total_contribution: 1000, desc: 心转法亦转。, effects: [{type: spell_damage_pct, value: 10}]}
+          - {id: spell_l2_n2, name: 返照, layer: 2, required_total_contribution: 1500, desc: 照见来处。, effects: [{type: spell_taken_pct, value: -10}]}
+          - {id: spell_l2_n3, name: 一气化三, layer: 2, required_total_contribution: 2000, desc: 一气分三处落。, effects: [{type: spell_true_damage_pct, value: 5}]}
+      - layer: 3
+        name: 归元
+        nodes:
+          - {id: spell_l3_n1, name: 万法归一, layer: 3, required_total_contribution: 5000, desc: 万法末处是一条路。, effects: [{type: spell_damage_pct, value: 15}]}
+          - {id: spell_l3_n2, name: 法域临身, layer: 3, required_total_contribution: 6000, desc: 域中无伤。, effects: [{type: skill_unlock, key: fa_yu, value: 0}]}
+          - {id: spell_l3_n3, name: 诸法不侵, layer: 3, required_total_contribution: 8000, desc: 天上地下，独此一念。, effects: [{type: spell_reflect_pct, value: 10}]}
+
+  - id: alchemy
+    name: 丹修
+    desc: 一炉火，一颗心，一条命。
+    layers:
+      - layer: 1
+        name: 识药
+        nodes:
+          - {id: alchemy_l1_n1, name: 识药, layer: 1, required_total_contribution: 0, desc: 入宗即得。, effects: [{type: gather_rate_pct, value: 10}]}
+          - {id: alchemy_l1_n2, name: 控火, layer: 1, required_total_contribution: 100, desc: 火大一分则苦。, effects: [{type: alchemy_rate_pct, value: 5}]}
+          - {id: alchemy_l1_n3, name: 辨毒, layer: 1, required_total_contribution: 300, desc: 毒与药只差一线。, effects: [{type: poison_resist_pct, value: 20}]}
+      - layer: 2
+        name: 成丹
+        nodes:
+          - {id: alchemy_l2_n1, name: 三转成丹, layer: 2, required_total_contribution: 1000, desc: 三转之后方称丹。, effects: [{type: pill_effect_pct, value: 8}]}
+          - {id: alchemy_l2_n2, name: 一炉双丹, layer: 2, required_total_contribution: 1500, desc: 有时炉里多一颗。, effects: [{type: alchemy_extra_pill_bp, value: 1000}]}
+          - {id: alchemy_l2_n3, name: 药性相通, layer: 2, required_total_contribution: 2000, desc: 药与人不隔。, effects: [{type: pill_cooldown_pct, value: -20}]}
+      - layer: 3
+        name: 通玄
+        nodes:
+          - {id: alchemy_l3_n1, name: 丹成有灵, layer: 3, required_total_contribution: 5000, desc: 丹上有纹，纹如眼。, effects: [{type: pill_effect_pct, value: 15}]}
+          - {id: alchemy_l3_n2, name: 济世, layer: 3, required_total_contribution: 6000, desc: 一颗丹，一条命。, effects: [{type: heal_bonus_pct, value: 30}]}
+          - {id: alchemy_l3_n3, name: 丹道即天道, layer: 3, required_total_contribution: 8000, desc: 炉火不熄，天道不孤。, effects: [{type: alchemy_rate_pct, value: 10}, {type: alchemy_fail_keep_material, value: 1}]}
+
+  - id: array
+    name: 阵修
+    desc: 山是阵，水是阵，人也是阵。
+    layers:
+      - layer: 1
+        name: 布眼
+        nodes:
+          - {id: array_l1_n1, name: 布眼, layer: 1, required_total_contribution: 0, desc: 入宗即得。, effects: [{type: array_effect_pct, value: 5}]}
+          - {id: array_l1_n2, name: 移星, layer: 1, required_total_contribution: 100, desc: 石可移，星亦可移。, effects: [{type: array_speed_pct, value: 10}]}
+          - {id: array_l1_n3, name: 困兽, layer: 1, required_total_contribution: 300, desc: 阵中无路。, effects: [{type: enemy_flee_pct, value: -20}]}
+      - layer: 2
+        name: 演阵
+        nodes:
+          - {id: array_l2_n1, name: 三重叠加, layer: 2, required_total_contribution: 1000, desc: 三阵合一，其力不三。, effects: [{type: array_effect_pct, value: 10}]}
+          - {id: array_l2_n2, name: 借地气, layer: 2, required_total_contribution: 1500, desc: 借一方土，成一脉气。, effects: [{type: mp_regen_bp_per_turn, value: 300}]}
+          - {id: array_l2_n3, name: 反制, layer: 2, required_total_contribution: 2000, desc: 见阵拆阵，见眼破眼。, effects: [{type: array_break_pct, value: 20}]}
+      - layer: 3
+        name: 周天
+        nodes:
+          - {id: array_l3_n1, name: 周天布阵, layer: 3, required_total_contribution: 5000, desc: 一布成周天。, effects: [{type: array_effect_pct, value: 15}]}
+          - {id: array_l3_n2, name: 封天, layer: 3, required_total_contribution: 6000, desc: 封一息，胜负已定。, effects: [{type: skill_unlock, key: feng_tian, value: 0}]}
+          - {id: array_l3_n3, name: 阵在人在, layer: 3, required_total_contribution: 8000, desc: 阵不散，人不倒。, effects: [{type: array_duration_plus, value: 2}, {type: damage_taken_pct, value: -10}]}
+
+# ------------------------------------------------------------
+# 校验断言：
+#   1) sects 恰 6 条；每宗 techniques 恰 4 条 = 24 条；
+#      contribution_price 与 v1.5 §4.9.5 逐条一致；
+#      tech_id 必须存在于 techniques.yaml 且其 sect_id 与本宗一致；
+#   2) directions 恰 5 条（body/sword/spell/alchemy/array）；
+#      每系 layers 恰 3 层，每层 nodes 恰 3 个 → 共 45 节点；
+#      同系内 required_total_contribution 严格递增（含首节点 0）；
+#   3) 六宗方向映射：qingyun→sword，wanfa→spell，taishang→alchemy，
+#      xuanzhen→array，dahuang→body，youming→body（魔化为体魄分支）。
+# 说明：方向树放在顶层 directions 而非每宗各挂一份，避免 6 × 45 = 270 份重复；
+#       宗门通过 direction 键引用对应树，语义与任务书一致。
