@@ -87,9 +87,11 @@ def test_apply_exp_stops_at_cap_level():
 
 
 def test_apply_exp_zero_gain_and_bad_input():
-    """零收益不改状态；负数/越界报错。"""
+    """零收益不改等级；溢出池回填到当前修为（总量守恒）。"""
     result = level.apply_exp(3, 50, 10, 0, K_FORGING)
-    assert (result.level, result.cultivation, result.exp_overflow) == (3, 50, 10)
+    assert result.level == 3
+    assert result.cultivation + result.exp_overflow == 60
+    assert (result.cultivation, result.exp_overflow) == (60, 0)
     with pytest.raises(ValueError):
         level.apply_exp(3, 0, 0, -1, K_FORGING)
     with pytest.raises(ValueError):

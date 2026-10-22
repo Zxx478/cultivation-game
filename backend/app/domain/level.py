@@ -110,7 +110,8 @@ def apply_exp(level: int, cultivation: int, exp_overflow: int, gain: int,
         raise ValueError("cultivation / exp_overflow must be >= 0")
 
     current = level
-    pool = cultivation + gain
+    # 上次结算遗留的溢出池必须回流，否则「只进不出」会永久丢失修为。
+    pool = cultivation + exp_overflow + gain
     ups = 0
     overflow_added = 0
     capped = False
@@ -137,7 +138,7 @@ def apply_exp(level: int, cultivation: int, exp_overflow: int, gain: int,
     return ApplyExpResult(
         level=current,
         cultivation=pool,
-        exp_overflow=exp_overflow + overflow_added,
+        exp_overflow=overflow_added,
         levels_gained=ups,
         overflow_added=overflow_added,
         capped=capped,

@@ -5,12 +5,13 @@
 """
 from __future__ import annotations
 
+import functools
 import json
 import sqlite3
 import threading
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Any, Callable, Iterator, List, Optional
 
 
 _SCHEMA_PATH = Path(__file__).resolve().parent / "sect_contribution.sql"
@@ -138,22 +139,49 @@ def init_global_conn(db_path: str = ":memory:") -> sqlite3.Connection:
     return conn
 
 
+_tx_state = threading.local()
+
+
 @contextmanager
 def transaction() -> Iterator[sqlite3.Connection]:
     """事务上下文：同一时刻只允许一个写事务（进程内串行化）。
 
+    支持嵌套：内层 ``with transaction()`` 只加入外层事务，**不单独提交**；
+    仅最外层退出时 commit / rollback。这样服务层可以把「校验 + 扣费 + 发奖 +
+    写日志」包成一个原子操作，而无需改写各 Repository 的既有调用方式。
+
     Python sqlite3 模块的默认行为：DML (INSERT/UPDATE/DELETE) 会隐式开启事务，
-    我们这里不显式 BEGIN，仅在外层做 commit/rollback——避免"cannot start a
-    transaction within a transaction"错误。
+    这里不显式 BEGIN，仅在最外层做 commit/rollback——避免
+    "cannot start a transaction within a transaction" 错误。
     """
     conn = get_conn()
     with _lock:
+        depth = int(getattr(_tx_state, "depth", 0))
+        _tx_state.depth = depth + 1
         try:
             yield conn
-            conn.commit()
         except Exception:
-            conn.rollback()
+            if depth == 0:
+                conn.rollback()
             raise
+        else:
+            if depth == 0:
+                conn.commit()
+        finally:
+            _tx_state.depth = depth
+
+
+def atomic(func: Callable[..., Any]) -> Callable[..., Any]:
+    """把服务函数包成「一次业务 = 一个事务」。
+
+    ``@atomic`` 修饰的函数整体成功才提交，任一异常整体回滚；嵌套调用自动合并。
+    """
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        with transaction():
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 # ---------------- 基础 Row → dict ----------------
