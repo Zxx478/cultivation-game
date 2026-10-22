@@ -15,6 +15,7 @@ from ..core.clock import DAYS_PER_YEAR, action_days
 from ..core.errors import ACTION_INVALID, CULTIVATION_INSUFFICIENT, GameError
 from ..core.rng import RngService
 from ..db.game_repository import CharacterRepository, FlagRepository, InventoryRepository
+from ..db.repository import atomic
 from ..domain import attrs as attrs_domain
 from ..domain import level as level_domain
 from ..domain import realm as realm_domain
@@ -45,6 +46,7 @@ def _prep(req: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
         "guardian": bool(prep.get("guardian", False)),
         "omen": bool(prep.get("omen", False)),
         "land": bool(prep.get("land", False)),
+        "expected_version": prep.get("expected_version"),
     }
 
 
@@ -105,10 +107,12 @@ def preview(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
 
 def _pill_count(char_id: int) -> int:
     """背包中的破境丹数量。"""
-    row = InventoryRepository.get(char_id, "po_jing_dan")
+    pill_id = str(get_registry().breakthrough_config().get("pill_item", "po_jing_dan"))
+    row = InventoryRepository.get(char_id, pill_id)
     return int(row["qty"]) if row else 0
 
 
+@atomic
 def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     """执行突破。"""
     char = writable_char()
@@ -118,7 +122,8 @@ def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     # 消耗破境丹（最多 2 颗，实际有几颗用几颗）
     pills = min(prep["pill_count"], _pill_count(int(char["id"])))
     if pills:
-        InventoryRepository.remove(int(char["id"]), "po_jing_dan", pills)
+        pill_id = str(registry.breakthrough_config().get("pill_item", "po_jing_dan"))
+        InventoryRepository.remove(int(char["id"]), pill_id, pills)
 
     physique = registry.physique(str(char.get("physique") or "fan_ti"))
     result = realm_domain.preview_breakthrough(
@@ -182,8 +187,10 @@ def execute(req: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
         fields["age_days"] = base_age + int(conf.get("cooldown_days", 30))
         FlagRepository.set(int(char["id"]), FAIL_FLAG, str(base_age))
 
-    CharacterRepository.update(int(char["id"]), fields,
-                               expected_version=int(char["version"]))
+    expected = prep.get("expected_version")
+    CharacterRepository.update(
+        int(char["id"]), fields,
+        expected_version=int(expected) if expected is not None else int(char["version"]))
     if success:
         main_quest_service.advance(int(char["id"]), {"type": "breakthrough",
                                                      "realm_index": int(fields["realm_index"]),

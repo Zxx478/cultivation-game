@@ -293,3 +293,83 @@ def test_forbidden_settlement_failure_does_not_keep_session():
 
     assert "forbidden_error" in result
     assert CombatSessionRepository.get(char_id) is None
+
+
+# ---------------- P2-14：防御时序 ----------------
+
+def test_defend_takes_effect_before_enemy_first_strike():
+    """敌方先手时，防御指令也必须先于挨打生效。"""
+    from app.core.rng import RngService
+    from app.domain import combat
+
+    base = {
+        "hp": 500, "hp_max": 500, "mp": 10, "mp_max": 10,
+        "atk": 50, "def": 100, "dr_denom": 500, "pen": 50,
+        "crit_bp": 0, "crit_dmg_bp": 15000, "hit_bp": 8800,
+        "evade_bp": 0, "init": 1, "name": "玩家",
+    }
+    enemy = dict(base, hp=5000, hp_max=5000, atk=100, init=100, name="敌人")
+
+    def enemy_dr(action_type: str, seed: int):
+        state = combat.build_state(base, enemy)
+        new_state = combat.step(state, {"type": action_type}, RngService(f"s{seed}"))
+        for entry in new_state["log"]:
+            if entry.get("actor") == "enemy" and entry.get("dr_bp") is not None:
+                return int(entry["dr_bp"])
+        return None
+
+    for seed in range(50):
+        defended = enemy_dr("defend", seed)
+        normal = enemy_dr("attack", seed)
+        if defended is not None and normal is not None and defended > normal:
+            return
+    raise AssertionError("防御未在敌方先手时生效")
+
+
+# ---------------- P2-1 / P2-3 / P2-4 / P2-10 ----------------
+
+def test_state_closed_door_times_uses_realm_specific_days():
+    """辟府境闭关 42 日，剩余 100 日只能闭关 2 次（不是 30 日的 3 次）。"""
+    from app.services import state_service
+
+    _make_char(level=10, realm_index=2, realm_stage=1,
+               lifespan_max_days=101, age_days=1)
+    data = state_service.state()
+    assert data["closed_door_times"] == 2
+    assert data["character"]["closed_door_times"] == 2
+
+
+def test_append_items_enforces_bag_capacity():
+    """采药/事件入包必须遵守背包格数上限。"""
+    from app.core.errors import BAG_FULL
+    from app.services.action_service import _append_items
+
+    char_id = _make_char(bag_slots=1)
+    InventoryRepository.add(char_id, "juqi_dan", "pill", 1)
+
+    with pytest.raises(Exception) as exc:
+        _append_items(char_id, {"xi_sui_dan": 1})
+    assert getattr(exc.value, "code", None) == BAG_FULL
+
+
+def test_import_snapshot_rejects_out_of_range():
+    """导入存档必须拒绝越界数值（level=999）。"""
+    from app.core.errors import IMPORT_INVALID
+    from app.services.save_service import SaveService
+
+    payload = {"schema_version": 1, "snapshot": {"character": {"level": 999}}}
+    with pytest.raises(Exception) as exc:
+        SaveService.import_payload(payload)
+    assert getattr(exc.value, "code", None) == IMPORT_INVALID
+
+
+def test_breakthrough_expected_version_conflict_rolls_back():
+    """突破的乐观锁冲突必须整体回滚，角色等级不变。"""
+    from app.core.errors import VERSION_CONFLICT
+    from app.services import breakthrough_service
+
+    char_id = _maxed_realm1()
+    with pytest.raises(Exception) as exc:
+        breakthrough_service.execute({"expected_version": 999})
+    assert getattr(exc.value, "code", None) == VERSION_CONFLICT
+    assert CharacterRepository.require(char_id)["level"] == 9

@@ -129,7 +129,10 @@ def breakthrough_preview(req: BreakthroughRequest | None = None):
 @router.post("/breakthrough")
 def breakthrough(req: BreakthroughRequest | None = None):
     """执行突破。"""
-    return ok(breakthrough_service.execute(req.prep if req else None))
+    prep = dict(req.prep) if req else {}
+    if req is not None and req.expected_version is not None:
+        prep["expected_version"] = req.expected_version
+    return ok(breakthrough_service.execute(prep))
 
 
 # ---------------- 战斗 ----------------
@@ -287,7 +290,7 @@ def sect_quest_complete(req: SectQuestCompleteRequest):
 @router.post("/sect/exchange")
 def sect_exchange(req: ExchangeRequest):
     """宗门兑换（真正发放）。"""
-    return ok(sect_bridge_service.exchange(req.item_type, req.item_id))
+    return ok(sect_bridge_service.exchange(req.item_type, req.item_id, req.sect_id))
 
 
 @router.post("/sect/sansxiu/encounter")

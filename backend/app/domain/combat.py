@@ -491,8 +491,11 @@ def step(state: Mapping[str, Any], action: Mapping[str, Any],
 
     player = new_state["player"]
     enemy = new_state["enemy"]
-    player["defending"] = False
     enemy["defending"] = False
+    # 防御在回合开始即生效：敌方先手时也能吃到减伤（否则防御等于白按）
+    player["defending"] = (
+        str(action.get("type")) == "defend" and int(player.get("stunned", 0)) == 0
+    )
 
     player_first = float(player["init"]) > float(enemy["init"])
     if float(player["init"]) == float(enemy["init"]):

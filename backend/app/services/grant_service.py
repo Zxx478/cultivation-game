@@ -78,7 +78,7 @@ class GrantService:
         for tech_id in rewards.get("techniques", ()) or ():
             registry.technique(str(tech_id))
         if item_ids:
-            GrantService._ensure_bag_room_for(char_id, item_ids)
+            GrantService.ensure_bag_room(char_id, item_ids)
 
         # ---- 1. 修为 ----
         exp = int(rewards.get("exp", 0) or 0)
@@ -204,7 +204,7 @@ class GrantService:
     # ---------------- 内部 ----------------
 
     @staticmethod
-    def _ensure_bag_room_for(char_id: int, item_ids: List[str]) -> None:
+    def ensure_bag_room(char_id: int, item_ids: List[str]) -> None:
         """背包未满校验：同批次多个新物品按「新增格数」一次性核算。
 
         Raises:

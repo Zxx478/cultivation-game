@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -30,6 +31,8 @@ from .services.errors import SectServiceError
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.environ.get("HUANGTIANJI_DATA", PROJECT_ROOT / "data"))
 WEB_DIR = Path(__file__).resolve().parent / "web"
+
+logger = logging.getLogger(__name__)
 
 
 def _tier_for_sect_table(tier: str) -> str:
@@ -114,11 +117,12 @@ def create_app(db_path: str | None = None) -> FastAPI:
     target = db_path or str(DATA_DIR / "game.db")
     if target != ":memory:":
         Path(target).parent.mkdir(parents=True, exist_ok=True)
+    # 内容自检必须先于任何建库/种子：内容非法时不得留下半初始化的数据库
+    load_all()
     init_global_conn(db_path=target)
     seed_quest_pool()
     seed_techniques()
     sync_catalog()
-    load_all()  # 内容自检（失败即启动失败）
 
     app.state.today_day = 1
     app.state.current_game_year = 1
@@ -149,15 +153,16 @@ def create_app(db_path: str | None = None) -> FastAPI:
 
     @app.middleware("http")
     async def game_clock(request: Request, call_next):
-        """把当前角色的 age_days 同步到 app.state，供既有宗门路由使用。"""
-        try:
-            char = CharacterRepository.get_active()
-            if char:
-                request.app.state.today_day = int(char["age_days"])
-                request.app.state.current_game_year = (int(char["age_days"]) - 1) // 360 + 1
-                request.app.state.current_realm_seq = int(char["realm_index"])
-        except Exception:
-            pass
+        """把当前角色的 age_days 同步到 app.state，仅供既有宗门路由使用。"""
+        if request.url.path.startswith("/api/v1/sect"):
+            try:
+                char = CharacterRepository.get_active()
+                if char:
+                    request.app.state.today_day = int(char["age_days"])
+                    request.app.state.current_game_year = (int(char["age_days"]) - 1) // 360 + 1
+                    request.app.state.current_realm_seq = int(char["realm_index"])
+            except Exception as exc:  # noqa: BLE001 - 时钟同步失败不应阻断请求
+                logger.warning("game clock sync failed: %s", exc)
         return await call_next(request)
 
     @app.exception_handler(GameError)

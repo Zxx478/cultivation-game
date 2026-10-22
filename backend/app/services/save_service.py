@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import os
 import secrets
 from pathlib import Path
@@ -37,6 +38,9 @@ from ..db.game_repository import (
     build_snapshot,
     restore_snapshot,
 )
+from ..db.repository import atomic
+
+logger = logging.getLogger(__name__)
 
 SIGN_SCHEMA_VERSION = 1
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
@@ -86,6 +90,41 @@ def _checksum(snapshot: Mapping[str, Any], content_version: str,
         "content_hash": content_hash,
     })
     return hmac.new(_secret(), body, hashlib.sha256).hexdigest()
+
+
+def _validate_snapshot(snapshot: Mapping[str, Any]) -> None:
+    """校验外部导入快照的数值范围，避免越界数据落库。"""
+    char = snapshot.get("character")
+    if not isinstance(char, Mapping):
+        raise GameError(IMPORT_INVALID, "存档结构非法：缺少 character")
+
+    def _int(key: str, lo: Optional[int] = None, hi: Optional[int] = None) -> None:
+        try:
+            value = int(char.get(key))
+        except (TypeError, ValueError):
+            raise GameError(IMPORT_INVALID, f"存档字段非法：{key}")
+        if lo is not None and value < lo:
+            raise GameError(IMPORT_INVALID, f"存档字段越界：{key}={value}")
+        if hi is not None and value > hi:
+            raise GameError(IMPORT_INVALID, f"存档字段越界：{key}={value}")
+
+    _int("level", 1, 18)
+    _int("realm_index", 1, 12)
+    _int("realm_stage", 1, 9)
+    _int("cultivation", 0)
+    _int("exp_overflow", 0)
+    _int("hp", 0)
+    _int("mp", 0)
+    _int("age_days", 1)
+    _int("lifespan_max_days", 1)
+    _int("spirit_stone", 0)
+    _int("version", 1)
+    for key in ("character_technique", "character_equipment", "character_inventory",
+                "character_quest", "character_relation"):
+        if not isinstance(snapshot.get(key), (list, tuple)):
+            raise GameError(IMPORT_INVALID, f"存档结构非法：{key}")
+    if not isinstance(snapshot.get("character_flag"), Mapping):
+        raise GameError(IMPORT_INVALID, "存档结构非法：character_flag")
 
 
 class SaveService:
@@ -158,13 +197,15 @@ class SaveService:
 
     @staticmethod
     def autosave(char_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
-        """自动存档（slot 0）。失败不抛给业务调用方。"""
+        """自动存档（slot 0）。失败只记录日志，不影响已完成的业务写入。"""
         try:
             return SaveService.save_slot(0, char_id=char_id, label="自动存档")
-        except GameError:
+        except Exception as exc:  # noqa: BLE001 - 存档失败不能回滚业务
+            logger.warning("autosave failed (char_id=%s): %s", char_id, exc)
             return None
 
     @staticmethod
+    @atomic
     def load(slot_id: int, *, expected_version: Optional[int] = None) -> Dict[str, Any]:
         """读取槽位并覆盖当前角色。
 
@@ -212,6 +253,7 @@ class SaveService:
         return payload
 
     @staticmethod
+    @atomic
     def import_payload(payload: Mapping[str, Any],
                        *, slot_id: Optional[int] = None) -> Dict[str, Any]:
         """导入存档：校验四项 → 新建角色 → 落一个新手动槽。
@@ -232,6 +274,7 @@ class SaveService:
         snapshot = data.get("snapshot")
         if not isinstance(snapshot, Mapping) or not isinstance(snapshot.get("character"), Mapping):
             raise GameError(IMPORT_INVALID, "存档结构非法：缺少 snapshot.character")
+        _validate_snapshot(snapshot)
         if int(data.get("schema_version", -1)) != SIGN_SCHEMA_VERSION:
             raise GameError(IMPORT_INVALID, "存档 schema 版本不兼容",
                             {"schema_version": data.get("schema_version")})

@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 ActionKind = Literal["seclusion", "adventure", "gather", "spar", "meditate"]
 CombatAction = Literal["attack", "skill", "defend", "item", "flee"]
-ItemType = Literal["technique", "pill", "equipment", "consumable", "material", "technique_recipe"]
+ItemType = Literal["technique", "pill", "equipment"]
 QuestLevel = Literal["low", "mid", "high"]
 
 

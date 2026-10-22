@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from ..content import get_registry
 from ..core.errors import EVENT_OPTION_INVALID, NO_PENDING_EVENT, GameError
@@ -27,6 +27,7 @@ from ..domain import event as event_domain
 from ..domain import level as level_domain
 from . import main_quest_service
 from .context import active_char
+from .grant_service import GrantService
 from .save_service import SaveService
 
 
@@ -147,17 +148,23 @@ def choose(instance_id: str, option_id: str) -> Dict[str, Any]:
                 fields["status"] = status
                 deltas["status"] = status
 
-    # ---- 物品 ----
+    # ---- 物品：先扣后发，避免背包满误判 ----
+    for item_id, qty in dict(effects.get("items_lost") or {}).items():
+        InventoryRepository.remove(int(char["id"]), str(item_id), int(qty))
+        deltas.setdefault("items_lost", {})[str(item_id)] = int(qty)
+    gained: List[Tuple[str, str, int]] = []
     for item_id, qty in dict(effects.get("items_gained") or {}).items():
         try:
             item = registry.item(str(item_id))
         except Exception:
             continue
-        InventoryRepository.add(int(char["id"]), str(item_id), str(item["kind"]), int(qty))
-        deltas.setdefault("items_gained", {})[str(item_id)] = int(qty)
-    for item_id, qty in dict(effects.get("items_lost") or {}).items():
-        InventoryRepository.remove(int(char["id"]), str(item_id), int(qty))
-        deltas.setdefault("items_lost", {})[str(item_id)] = int(qty)
+        if int(qty) > 0:
+            gained.append((str(item_id), str(item["kind"]), int(qty)))
+    if gained:
+        GrantService.ensure_bag_room(int(char["id"]), [g[0] for g in gained])
+    for item_id, kind, qty in gained:
+        InventoryRepository.add(int(char["id"]), item_id, kind, qty)
+        deltas.setdefault("items_gained", {})[item_id] = qty
 
     # ---- 功法 ----
     for tech_id in effects.get("techniques") or ():

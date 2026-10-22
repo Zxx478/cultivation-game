@@ -24,6 +24,8 @@ from ..db.game_repository import (
     EquipmentRepository,
     FlagRepository,
     InventoryRepository,
+    SectQuestRecordRepository,
+    SectActiveQuestRepository,
     TechniqueRepository,
 )
 from ..db.repository import (
@@ -86,8 +88,9 @@ def _missing_join(sec: Mapping[str, Any], char: Mapping[str, Any]) -> List[str]:
     materials = list(req.get("materials_any") or ())
     if materials:
         qty = int(req.get("materials_qty", 1))
-        total = sum(int(InventoryRepository.get(int(char["id"]), str(m))["qty"])
-                    for m in materials if InventoryRepository.get(int(char["id"]), str(m)))
+        rows = {str(m): InventoryRepository.get(int(char["id"]), str(m))
+                for m in materials}
+        total = sum(int(row["qty"]) for row in rows.values() if row)
         if total < qty:
             missing.append(f"需持 {'/'.join(materials)} ≥ {qty} 株（当前 {total}）")
     trial = int(req.get("trial_win_streak", 0))
@@ -123,11 +126,7 @@ def overview() -> Dict[str, Any]:
     directions = []
     member = identity.get("member") or {}
     try:
-        from ..db.repository import get_conn
-        row = get_conn().execute(
-            "SELECT COALESCE(SUM(contribution_gained), 0) AS total "
-            "FROM sect_quest_record WHERE character_id = ?", (int(char["id"]),)).fetchone()
-        total_contribution = int(row["total"] or 0) if row else int(member.get("contribution", 0))
+        total_contribution = SectQuestRecordRepository.sum_contribution(int(char["id"]))
     except Exception:
         total_contribution = int(member.get("contribution", 0))
     sect_direction = None
@@ -179,10 +178,7 @@ def overview() -> Dict[str, Any]:
             })
     wallet = identity.get("wallet") or {}
     active_quest = None
-    from ..db.repository import get_conn
-    row = get_conn().execute(
-        "SELECT * FROM sect_active_quest WHERE character_id = ? AND status = 'accepted' "
-        "ORDER BY quest_id DESC LIMIT 1", (int(char["id"]),)).fetchone()
+    row = SectActiveQuestRepository.active_for(int(char["id"]))
     if row is not None:
         import json as _json
         try:
@@ -204,7 +200,11 @@ def overview() -> Dict[str, Any]:
                 {"label": f"贡献 +{int(row['reward_contribution'])}"},
                 {"label": f"灵石 +{int(row['reward_spirit_stone'])}"},
             ],
-            "objectives": [{"desc": str(k), "current": 0, "target": 1} for k in target_meta],
+            "objectives": [
+                {"desc": str(key), "current": 0,
+                 "target": int(value) if isinstance(value, (int, float)) else 1}
+                for key, value in target_meta.items()
+            ],
         }
     return {
         **identity,
@@ -354,7 +354,8 @@ def complete_sect_quest(quest_id: int) -> Dict[str, Any]:
 
 
 @atomic
-def exchange(item_type: str, item_id: str) -> Dict[str, Any]:
+def exchange(item_type: str, item_id: str,
+             sect_id: Optional[str] = None) -> Dict[str, Any]:
     """兑换（校验全部前置 → 扣费 → 发放，整笔单事务）。"""
     char = _char()
     identity = _identity(char)
@@ -388,23 +389,25 @@ def exchange(item_type: str, item_id: str) -> Dict[str, Any]:
     else:
         raise GameError(ACTION_INVALID, f"未知兑换类型：{item_type}")
 
-    # ---- 2. 确定宗门（散修按功法反查；其余类型需显式宗门） ----
-    sect_id = identity["sect_id"]
-    if not sect_id and tech is not None:
-        sect_id = str(tech.get("sect_id") or "")
-    if not sect_id:
-        raise GameError(PATH_NOT_ALLOWED, "无法确定兑换宗门")
+    # ---- 2. 确定宗门（弟子锁定本宗；散修可显式指定，功法可反查） ----
+    target_sect = identity["sect_id"] or str(sect_id or "")
+    if not target_sect and tech is not None:
+        target_sect = str(tech.get("sect_id") or "")
+    if not target_sect:
+        raise GameError(PATH_NOT_ALLOWED, "无法确定兑换宗门，请指定 sect_id")
+    try:
+        registry.sect(target_sect)
+    except Exception:
+        raise GameError(ACTION_INVALID, f"宗门不存在：{target_sect}")
 
     # ---- 3. 背包容量预检（丹药类入包前） ----
-    if item is not None and InventoryRepository.get(int(char["id"]), item_id) is None:
-        used = InventoryRepository.distinct_slots(int(char["id"]))
-        if used >= int(char["bag_slots"]):
-            raise GameError(4015, "行囊已满", {"used": used, "slots": int(char["bag_slots"])})
+    if item is not None:
+        GrantService.ensure_bag_room(int(char["id"]), [item_id])
 
     # ---- 4. 扣费（加入当前外层事务，失败整体回滚） ----
     try:
         result = ExchangeService.check_and_exchange(
-            int(char["id"]), sect_id, item_type, item_id, 0,
+            int(char["id"]), target_sect, item_type, item_id, 0,
             int(char["age_days"]))
     except Exception as exc:
         raise _to_game_error(exc)
@@ -552,6 +555,8 @@ def enter_forbidden(land_id: str) -> Dict[str, Any]:
         raise GameError(3005, "散修贡献点不足")
 
     # 扣进入耗时（先扣时间，再战；失败只损失时间）
+    # 说明：年度次数与冷却在胜利结算时由 ForbiddenLandService.enter 记录，
+    #       因此失败可再次进入（仅损失时间），这是当前设计边界。
     CharacterRepository.update(int(char["id"]),
                                {"age_days": int(char["age_days"]) + int(land.get("entry_days", 30))},
                                expected_version=int(char["version"]))
@@ -575,6 +580,10 @@ def complete_forbidden(char_id: int, land_id: str, attempt: int) -> Dict[str, An
     except Exception as exc:
         raise _to_game_error(exc)
     granted: Dict[str, Any] = {}
+    materials = [str(reward.get("mat_id")) for reward in result.get("rewards", ())
+                 if str(reward.get("type")) == "material" and reward.get("mat_id")]
+    if materials:
+        GrantService.ensure_bag_room(char_id, materials)
     for reward in result.get("rewards", ()):
         rtype = str(reward.get("type"))
         if rtype in ("technique", "technique_recipe") and reward.get("tech_id"):

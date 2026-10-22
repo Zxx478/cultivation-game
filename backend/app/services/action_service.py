@@ -40,6 +40,7 @@ from ..domain import level as level_domain
 from . import main_quest_service, stats_service
 from ..db.repository import atomic
 from .context import active_char
+from .grant_service import GrantService
 from .save_service import SaveService
 
 ACTION_ALIASES = {
@@ -243,6 +244,17 @@ def _start_combat(char_id: int, char: Mapping[str, Any], *,
 def _append_items(char_id: int, items: Dict[str, int]) -> Dict[str, int]:
     """把一批物品放入背包（按堆叠），返回实际入包数量。"""
     registry = get_registry()
+    valid: List[str] = []
+    for item_id, qty in items.items():
+        if qty <= 0:
+            continue
+        try:
+            registry.item(str(item_id))
+        except Exception:
+            continue
+        valid.append(str(item_id))
+    if valid:
+        GrantService.ensure_bag_room(char_id, valid)
     got: Dict[str, int] = {}
     for item_id, qty in items.items():
         if qty <= 0:

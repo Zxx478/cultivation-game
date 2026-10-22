@@ -734,6 +734,34 @@ class GrantLogRepository:
                          (int(char_id),))
 
 
+class SectQuestRecordRepository:
+    """宗门任务贡献记录（既有表，只读聚合）。"""
+
+    @staticmethod
+    def sum_contribution(char_id: int) -> int:
+        """角色累计宗门任务贡献（方向树点亮判定用）。"""
+        row = get_conn().execute(
+            "SELECT COALESCE(SUM(contribution_gained), 0) AS total "
+            "FROM sect_quest_record WHERE character_id = ?",
+            (int(char_id),),
+        ).fetchone()
+        return int(row["total"] or 0) if row else 0
+
+
+class SectActiveQuestRepository:
+    """宗门进行中任务（既有表，只读）。"""
+
+    @staticmethod
+    def active_for(char_id: int) -> Optional[Dict[str, Any]]:
+        """取最近一条 accepted 状态的宗门任务。"""
+        row = get_conn().execute(
+            "SELECT * FROM sect_active_quest WHERE character_id = ? AND status = 'accepted' "
+            "ORDER BY quest_id DESC LIMIT 1",
+            (int(char_id),),
+        ).fetchone()
+        return _row_to_dict(row) if row else None
+
+
 # ============================================================
 # 存档槽
 # ============================================================

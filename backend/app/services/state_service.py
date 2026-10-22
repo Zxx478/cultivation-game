@@ -182,6 +182,10 @@ def state() -> Dict[str, Any]:
     realm = registry.realm_by_index(int(char["realm_index"]))
     region = registry.region(str(char.get("region_id") or "duanhuai_village"))
     left_days = int(char["lifespan_max_days"]) - int(char["age_days"])
+    # 闭关实际耗时随境界增长（锻血 30 / 辟府 42…），可闭关次数必须用它，不能用固定 30
+    seclusion_days = max(1, action_days(registry.action_base_days("seclusion"),
+                                       int(char["realm_index"])))
+    closed_door_times = max(0, left_days // seclusion_days)
 
     quests = _quest_rows(char_id, char)
     current_quest = next((q for q in quests if q["status"] in ("active", "ready")), None)
@@ -262,7 +266,7 @@ def state() -> Dict[str, Any]:
             "region_name": str(region.get("name", "")),
             "region_env_coef": float(region.get("env_coef", 1.0)),
             "can_breakthrough": bool(can_break),
-            "can_seclude_times": max(0, left_days // max(1, action_days(registry.action_base_days("seclusion"), int(char["realm_index"])))),
+            "can_seclude_times": closed_door_times,
             "hp": int(stats.hp),
             "hp_max": int(stats.derived.hp_max),
             "mp": int(stats.mp),
@@ -271,7 +275,7 @@ def state() -> Dict[str, Any]:
             "bag_slots": int(stats.bag_slots),
             "exp_rate": round(float(stats.exp_rate), 2),
             "retreat_gain": retreat_gain,
-            "closed_door_times": max(0, left_days // max(1, action_days(registry.action_base_days("seclusion"), int(char["realm_index"])))),
+            "closed_door_times": closed_door_times,
             "remaining_actions": {"level": int(remaining_level), "realm": int(realm_times)},
             "breakthrough_reason": "冲击下一境" if can_break else "境界未圆满",
         },
@@ -285,7 +289,7 @@ def state() -> Dict[str, Any]:
         "logs": LogRepository.events(char_id, 30),
         "milestones": LogRepository.milestones(char_id, 20),
         "game_year": game_year(int(char["age_days"])),
-        "closed_door_times": max(0, left_days // 30),
+        "closed_door_times": closed_door_times,
         "can_breakthrough": bool(can_break),
         "breakthrough_reason": "冲击下一境" if can_break else "境界未圆满",
         "remaining_actions": {"level": int(remaining_level), "realm": int(realm_times)},

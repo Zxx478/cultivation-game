@@ -16,6 +16,7 @@ from ..content import get_registry
 from ..db.game_repository import (
     CharacterRepository,
     EquipmentRepository,
+    SectQuestRecordRepository,
     TechniqueRepository,
 )
 from ..domain import attrs as attrs_domain
@@ -118,11 +119,7 @@ def _direction_bonus(char: Mapping[str, Any]) -> Tuple[Dict[str, float], Dict[st
     if not direction:
         return {}, {}
     try:
-        from ..db.repository import get_conn
-        row = get_conn().execute(
-            "SELECT COALESCE(SUM(contribution_gained), 0) AS total "
-            "FROM sect_quest_record WHERE character_id = ?", (int(char["id"]),)).fetchone()
-        total = int(row["total"] or 0) if row else 0
+        total = SectQuestRecordRepository.sum_contribution(int(char["id"]))
     except Exception:
         total = 0
     derived: Dict[str, float] = {}
