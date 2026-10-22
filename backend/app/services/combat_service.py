@@ -183,9 +183,11 @@ def _after_victory(char_id: int, row: Mapping[str, Any], session: Mapping[str, A
 @atomic
 def _after_defeat(char_id: int, session: Mapping[str, Any]) -> Dict[str, Any]:
     """失败结算：还魂丹续战，否则置 dead。"""
-    inv = InventoryRepository.get(char_id, "jiuzhuan_huanshun")
+    revive_item = str(get_registry().combat_config().get("revive_item",
+                                                         "jiuzhuan_huanshun"))
+    inv = InventoryRepository.get(char_id, revive_item)
     if inv is not None and int(inv.get("qty", 0)) > 0:
-        InventoryRepository.remove(char_id, "jiuzhuan_huanshun", 1)
+        InventoryRepository.remove(char_id, revive_item, 1)
         revived = combat_domain.apply_revive(session, hp_pct=50)
         _persist_vitals(char_id, revived)
         CombatSessionRepository.save(char_id, revived, status=str(revived["status"]),

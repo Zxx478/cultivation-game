@@ -101,7 +101,8 @@ function renderLogRail() {
   const view = store.view;
   const entries = [];
 
-  view.logs.slice(-40).forEach((item) => {
+  // logs 为「新→旧」，取前 40 条最新（不要用 slice(-40)，那是取最旧）
+  view.logs.slice(0, 40).forEach((item) => {
     if (typeof item === 'string') entries.push({ kind: 'event', text: item });
     else entries.push({
       kind: String((item && (item.kind || item.type)) || 'event').toLowerCase(),

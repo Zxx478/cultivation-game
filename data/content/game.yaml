@@ -105,6 +105,7 @@ combat:
   flee_boss_penalty_bp: 3000    # BOSS 场 -30%
   flee_secret_penalty_bp: 2000  # 秘境场 -20%
   flee_fail_limit: 3            # 连续逃跑失败 3 次后禁逃
+  revive_item: jiuzhuan_huanshun  # 战斗失败自动消耗的还魂丹 item_id
   mp_regen_bp_per_turn: 300     # 每回合恢复灵力上限的 3%
   mp_regen_bp_on_win: 10000     # 战斗结束灵力回满
   hp_restore_on_revive_bp: 5000 # 还魂丹复活回 50% 气血
@@ -135,6 +136,7 @@ breakthrough:
   prepare_cap_bp: 3000          # 冲关准备（丹药/护法/吉日/灵地）四类加成合计上限 +30%
   pill_bonus_bp: 800            # 破境丹每颗 +8%
   pill_max_count: 2             # 每次突破最多 2 颗
+  pill_item: po_jing_dan        # 破境丹 item_id
   guardian_bonus_bp: 1000       # 护法 +10%
   omen_bonus_bp: 600            # 吉日 +6%
   land_bonus_bp: 600            # 灵地 +6%

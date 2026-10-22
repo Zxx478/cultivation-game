@@ -71,8 +71,11 @@ def _index(items: Sequence[Mapping[str, Any]],
 
 def _index_int(items: Sequence[Mapping[str, Any]],
                key: str) -> Mapping[int, Mapping[str, Any]]:
-    """按整数键建只读索引（order / grade）。"""
-    return MappingProxyType({int(item[key]): item for item in items})
+    """按整数键建只读索引（重复键取首个，与 ``_index`` 保持一致）。"""
+    out: Dict[int, Mapping[str, Any]] = {}
+    for item in items:
+        out.setdefault(int(item[key]), item)
+    return MappingProxyType(out)
 
 
 # ---------------- Content ----------------

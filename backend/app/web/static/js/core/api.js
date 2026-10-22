@@ -31,7 +31,7 @@ export class ApiError extends Error {
 
   /** 版本冲突（存档已在别处变更） */
   get isVersionConflict() {
-    return this.code === '4004' || this.http === 409 && this.code === '4004';
+    return this.code === '4004';
   }
 }
 
