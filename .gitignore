@@ -1,0 +1,15 @@
+# 运行时数据（存档与签名密钥，不入库）
+data/game.db
+data/game.db-wal
+data/game.db-shm
+data/.save_secret
+data/.save_secret*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# 本地环境
+.env
