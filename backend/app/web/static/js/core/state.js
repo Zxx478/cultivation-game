@@ -64,6 +64,8 @@ function normalize(raw) {
   const region = first(root.region, {}) || {};
   const identity = first(root.identity, root.path, {}) || {};
   const action = first(root.action, root.actions, {}) || {};
+  /** 本境时间档位（服务端按境界查表下发）：'label' 如「3 个月」，'days' 如 90 */
+  const tier = first(root.time_tier, root.timeTier, {}) || {};
 
   const level = num(first(pick(c, 'level'), pick(root, 'level')));
   const expNeed = num(first(
@@ -183,6 +185,8 @@ function normalize(raw) {
     seclusionDays,
     actionBaseDays: first(pick(root, 'action_base_days'), null),
     actionDays: first(pick(root, 'action_days'), null),
+    timeTierLabel: pick(tier, 'label') || null,
+    timeTierDays: num(pick(tier, 'days')),
     canBreakthrough: pick(root, 'can_breakthrough', 'cultivation.can_breakthrough') === true,
     breakthroughReason: first(pick(root, 'breakthrough_reason', 'cultivation.breakthrough_reason'), null),
     mainQuest: first(root.main_quest, root.quest, null),

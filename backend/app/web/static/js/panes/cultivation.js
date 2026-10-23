@@ -12,6 +12,11 @@ import {
 } from '../core/ui.js';
 import router from '../core/router.js';
 
+/** 状态订阅句柄：leave 时解绑 */
+let unsubscribeState = null;
+/** 结算进行中：按钮被 withBusy 临时置灰，此时不让订阅回调把按钮重新放开 */
+let settling = false;
+
 const LAYER_NAMES = {
   base: '悟性基数',
   wis: '悟性',
@@ -184,17 +189,20 @@ async function runAction(root, button) {
 
   await withBusy(button, async () => {
     try {
+      settling = true;
       const data = await performAction(kind, { repeat, expectedVersion: store.view.version });
       card.hidden = false;
       renderSettle(qs('#cult-result-body', root), data);
       await refreshAndSync();
-      renderGain(root);
       renderRate(root);
-      renderProgress(root);
     } catch (err) {
       toastError(err);
       if (err.code === '4003') router.go('creation');
       if (err.code === '4006' || err.code === '4008') toast('寿元不足，修行已至尽头', 'warn');
+    } finally {
+      settling = false;
+      renderGain(root);
+      renderProgress(root);
     }
   }, { label: '结算中…', group });
 }
@@ -220,6 +228,21 @@ export default {
           document.dispatchEvent(new CustomEvent('game:open-breakthrough'));
         }
       });
+    }
+
+    // 突破后本境档位变了，这里的「闭关 N 日」也要跟着变
+    if (typeof unsubscribeState === 'function') unsubscribeState();
+    unsubscribeState = store.subscribe((view, reason) => {
+      if (reason !== 'state' || root.hidden || settling) return;
+      renderGain(root);
+      renderProgress(root);
+    });
+  },
+
+  leave() {
+    if (typeof unsubscribeState === 'function') {
+      unsubscribeState();
+      unsubscribeState = null;
     }
   },
 };

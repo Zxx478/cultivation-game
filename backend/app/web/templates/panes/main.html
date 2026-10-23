@@ -43,24 +43,58 @@
         <p class="card__meta" id="action-region">—</p>
       </header>
       <div class="card__body">
-        <div class="actionbar" id="actionbar">
-          <button class="btn btn--primary action" type="button" data-action="seclusion">闭关</button>
-          <button class="btn btn--ghost action" type="button" data-action="adventure">历练</button>
-          <button class="btn btn--ghost action" type="button" data-action="gather">采药</button>
-          <button class="btn btn--ghost action" type="button" data-action="spar">切磋</button>
-          <button class="btn btn--ghost action" type="button" data-action="meditate">打坐</button>
-          <span class="actionbar__repeat">
-            <label class="visually-hidden" for="repeat-count">持续闭关次数</label>
-            <select class="input input--sm" id="repeat-count">
-              <option value="2">2</option>
-              <option value="3" selected>3</option>
-              <option value="5">5</option>
-              <option value="10">10</option>
-            </select>
-            <button class="btn btn--ghost action" type="button" data-action="seclusion" data-repeat="1">持续闭关</button>
-          </span>
+        <div class="actionrule">
+          <p class="actionrule__main">
+            <span class="actionrule__tag">本境节奏</span>
+            <b class="actionrule__tier" id="action-tier">—</b>
+            <span class="actionrule__seal" id="action-tier-days">一档 —</span>
+            <span class="actionrule__left" id="action-left">还能闭关 — 次</span>
+          </p>
+          <p class="actionrule__law" id="action-law">—</p>
         </div>
-        <p class="hint" id="action-hint">闭关一日三十天，寿元随之而去。慎重。</p>
+
+        <div class="actionset" id="actionbar">
+          <div class="actionbar" id="action-row">
+            <button class="btn btn--primary action" type="button" data-action="seclusion">
+              <span class="action__name">闭关</span>
+              <span class="action__cost" data-cost="seclusion">—</span>
+            </button>
+            <button class="btn btn--ghost action" type="button" data-action="adventure">
+              <span class="action__name">历练</span>
+              <span class="action__cost" data-cost="adventure">—</span>
+            </button>
+            <button class="btn btn--ghost action" type="button" data-action="gather">
+              <span class="action__name">采药</span>
+              <span class="action__cost" data-cost="gather">—</span>
+            </button>
+            <button class="btn btn--ghost action" type="button" data-action="spar">
+              <span class="action__name">切磋</span>
+              <span class="action__cost" data-cost="spar">—</span>
+            </button>
+            <button class="btn btn--ghost action" type="button" data-action="meditate">
+              <span class="action__name">打坐</span>
+              <span class="action__cost" data-cost="meditate">—</span>
+            </button>
+          </div>
+
+          <div class="actionbar actionbar--repeat">
+            <label class="action__label" for="repeat-count">持续闭关</label>
+            <select class="input input--sm" id="repeat-count">
+              <option value="2">2 次</option>
+              <option value="3" selected>3 次</option>
+              <option value="5">5 次</option>
+              <option value="10">10 次</option>
+            </select>
+            <button class="btn btn--ghost action" type="button" data-action="seclusion" data-repeat="1">
+              <span class="action__name">连闭关</span>
+              <span class="action__cost" data-cost="repeat">—</span>
+            </button>
+          </div>
+
+          <ul class="actionlist" id="action-list"></ul>
+        </div>
+
+        <p class="hint" id="action-hint">闭关耗日，寿元随之而去。慎重。</p>
         <div class="actionbar actionbar--aux">
           <button class="btn btn--danger" type="button" id="main-breakthrough" hidden>冲击下一境</button>
           <a class="btn btn--ghost" href="#/map">前往他处</a>

@@ -1071,6 +1071,139 @@ table {
   gap: var(--sp-1);
 }
 
+/* ---------- 今日行事：时间规则条 ---------- */
+.actionrule {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-3);
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+}
+
+.actionrule__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-family: var(--font-sans);
+}
+
+.actionrule__tag {
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  color: var(--gold);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+}
+
+.actionrule__tier {
+  color: var(--gold-lift);
+  font-size: var(--fs-md);
+  letter-spacing: 0.06em;
+}
+
+.actionrule__seal,
+.actionrule__left {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.actionrule__left--warn {
+  color: var(--cinnabar-lift);
+}
+
+.actionrule__law {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+}
+
+/* ---------- 今日行事：行事集合 ---------- */
+.actionset {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+/* 按钮内的第二行耗时；只作用于洞府的 actionbar，勿波及修炼页 */
+.actionset .action {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  line-height: 1.25;
+}
+
+.actionset .action__name {
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+}
+
+.actionset .action__cost {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.actionset .action.btn--primary .action__cost {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.actionbar--repeat {
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--line-soft);
+}
+
+.action__label {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 今日行事：耗时细目 ---------- */
+.actionlist {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.actionlist__item {
+  display: grid;
+  grid-template-columns: 4em minmax(6em, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--line-soft);
+  font-size: var(--fs-sm);
+}
+
+.actionlist__item:last-child {
+  border-bottom: 0;
+}
+
+.actionlist__name {
+  color: var(--text);
+  letter-spacing: 0.12em;
+}
+
+.actionlist__days {
+  color: var(--gold-lift);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.actionlist__note {
+  min-width: 0;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+
 /* ---------- 创角 ---------- */
 .creation {
   display: grid;
@@ -2969,6 +3102,16 @@ table {
 
   .card__head {
     padding: var(--sp-2) var(--sp-3);
+  }
+
+  /* 窄屏：耗时细目改为「名称 + 日数」一行，说明文字另起一行铺满 */
+  .actionlist__item {
+    grid-template-columns: 4em minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .actionlist__note {
+    grid-column: 1 / -1;
   }
 
   .rollgrid,
